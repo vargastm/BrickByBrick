@@ -1,7 +1,7 @@
 'use client'
 
 import { getDefaultConfig } from '@rainbow-me/rainbowkit'
-import { arbitrum, base, mainnet, optimism, polygon } from 'wagmi/chains'
+import { sepolia } from 'wagmi/chains'
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 
@@ -12,6 +12,6 @@ if (!projectId) {
 export const config = getDefaultConfig({
   appName: 'BrickByBrick',
   projectId,
-  chains: [mainnet, polygon, optimism, arbitrum, base],
+  chains: [sepolia],
   ssr: false,
 })

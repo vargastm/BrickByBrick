@@ -128,15 +128,17 @@ export default function NewProjectPage() {
       console.log(transaction)
 
       // Send the transaction using wagmi
-      await sendTransaction({
+      const tx = await sendTransaction({
         to: transaction.to as `0x${string}`,
         data: transaction.data as `0x${string}`,
         value: transaction.value ? BigInt(transaction.value) : BigInt(0),
-        gas: transaction.gas ? BigInt(1000) : undefined,
+        gas: transaction.gas ? BigInt(transaction.gas) : undefined,
         gasPrice: transaction.gasPrice
           ? BigInt(transaction.gasPrice)
           : undefined,
       })
+
+      console.log(tx)
     } catch (err) {
       console.error('Error creating building:', err)
       setError(
