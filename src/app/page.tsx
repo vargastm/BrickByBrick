@@ -17,8 +17,10 @@ export default function Home() {
               Brick by Brick
             </h1>
             <p className="mb-8 text-xl text-zinc-300 md:text-2xl">
-            For <strong>builders</strong> who need liquidity without discounting units.
-            For <strong>investors</strong> who want real estate exposure with safety, lower entry barriers, and guaranteed liquidity.
+              For <strong>builders</strong> who need liquidity without
+              discounting units. For <strong>investors</strong> who want real
+              estate exposure with safety, lower entry barriers, and guaranteed
+              liquidity.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Link
@@ -122,6 +124,44 @@ export default function Home() {
               Monitor your investments in real-time with live updates on
               construction progress and milestones
             </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="container mx-auto max-w-7xl px-4 py-20">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 text-4xl font-bold text-zinc-900 dark:text-white">
+              Built for Builders. Designed for Investors.
+            </h2>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2">
+            <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+              <h3 className="mb-4 text-2xl font-bold text-zinc-900 dark:text-white">
+                For Builders:
+              </h3>
+              <p className="text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Raise capital without sacrificing margins.
+              </p>
+              <p className="mt-4 text-zinc-600 dark:text-zinc-400">
+                BrickByBrick gives you liquidity, faster funding rounds, and
+                milestone-based releases that protect your cash flow.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+              <h3 className="mb-4 text-2xl font-bold text-zinc-900 dark:text-white">
+                For Investors:
+              </h3>
+              <p className="text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Access premium real estate with a low entry ticket.
+              </p>
+              <p className="mt-4 text-zinc-600 dark:text-zinc-400">
+                Invest with on-chain safety, transparency, and guaranteed
+                liquidity on secondary markets.
+              </p>
+            </div>
           </div>
         </div>
       </section>
