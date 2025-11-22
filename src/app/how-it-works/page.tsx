@@ -144,7 +144,7 @@ export default function HowItWorks() {
 
   useEffect(() => {
     const updateActiveStep = () => {
-      const viewportTop = window.scrollY + 200 // Offset para considerar o header
+      const viewportTop = window.scrollY + 200
       const viewportCenter = window.scrollY + window.innerHeight / 2
 
       let activeIndex = 0
@@ -157,10 +157,8 @@ export default function HowItWorks() {
         const elementTop = window.scrollY + rect.top
         const elementCenter = elementTop + rect.height / 2
 
-        // Calcula a distância do centro do elemento ao centro da viewport
         const distance = Math.abs(elementCenter - viewportCenter)
 
-        // Se o elemento está visível e mais próximo do centro da viewport
         if (
           elementTop < viewportTop + window.innerHeight &&
           elementTop + rect.height > viewportTop &&
@@ -174,25 +172,23 @@ export default function HowItWorks() {
       setActiveStep(activeIndex)
     }
 
-    // Atualiza ao scrollar
     window.addEventListener('scroll', updateActiveStep, { passive: true })
-    // Atualiza inicialmente
     updateActiveStep()
 
-    // Também usa Intersection Observer como fallback
     const observers = stepRefs.current.map((ref, index) => {
       if (!ref) return null
 
       const observer = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
-            // Só atualiza se a interseção for significativa
             const rect = entry.boundingClientRect
             const viewportCenter = window.innerHeight / 2
             const elementCenter = rect.top + rect.height / 2
 
-            // Se o elemento está próximo do centro da viewport
-            if (Math.abs(elementCenter - viewportCenter) < window.innerHeight * 0.4) {
+            if (
+              Math.abs(elementCenter - viewportCenter) <
+              window.innerHeight * 0.4
+            ) {
               setActiveStep(index)
             }
           }
@@ -200,7 +196,7 @@ export default function HowItWorks() {
         {
           threshold: [0, 0.25, 0.5, 0.75, 1],
           rootMargin: '-100px 0px -100px 0px',
-        }
+        },
       )
 
       observer.observe(ref)
@@ -226,8 +222,7 @@ export default function HowItWorks() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-50 dark:from-[#0f101a] dark:via-zinc-950 dark:to-[#0f101a]">
-      {/* Hero Section */}
-      <section className="relative mt-16 flex min-h-[600px] items-center justify-center overflow-hidden border-b border-zinc-200 bg-gradient-to-r from-black via-zinc-900 to-black dark:border-zinc-800 py-20">
+      <section className="relative mt-16 flex min-h-[600px] items-center justify-center overflow-hidden border-b border-zinc-200 bg-gradient-to-r from-black via-zinc-900 to-black py-20 dark:border-zinc-800">
         <div className="absolute inset-0 opacity-10"></div>
         <div className="relative container mx-auto max-w-7xl px-4 py-12">
           <div className="mx-auto max-w-4xl text-center">
@@ -250,12 +245,10 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      {/* Steps Section with Sidebar */}
       <div className="flex">
-        {/* Sidebar Navigation */}
-        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 border-r border-zinc-200 bg-white/80 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/80 lg:block">
+        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 border-r border-zinc-200 bg-white/80 backdrop-blur-sm lg:block dark:border-zinc-800 dark:bg-zinc-950/80">
           <div className="p-6">
-            <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <h2 className="mb-6 text-sm font-semibold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
               Steps
             </h2>
             <nav className="space-y-2">
@@ -285,7 +278,6 @@ export default function HowItWorks() {
           </div>
         </aside>
 
-        {/* Steps Content */}
         <main className="flex-1">
           <section className="container mx-auto max-w-4xl px-4 py-20">
             <div className="space-y-32">
@@ -297,7 +289,7 @@ export default function HowItWorks() {
                   }}
                   className="scroll-mt-20"
                 >
-                  <StepContent step={step} index={index} />
+                  <StepContent step={step} />
                 </div>
               ))}
             </div>
@@ -305,7 +297,6 @@ export default function HowItWorks() {
         </main>
       </div>
 
-      {/* FAQ Section */}
       <section className="border-t border-zinc-200 dark:border-zinc-800">
         <div className="container mx-auto max-w-7xl px-4 py-20">
           <div className="mb-12 text-center">
@@ -320,7 +311,6 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="border-t border-zinc-200 bg-gradient-to-r from-black via-zinc-900 to-black dark:border-zinc-800">
         <div className="container mx-auto max-w-7xl px-4 py-20">
           <div className="mx-auto max-w-3xl text-center">
@@ -410,9 +400,7 @@ function FAQAccordion() {
           </button>
           <div
             className={`overflow-hidden transition-all duration-300 ${
-              openIndex === index
-                ? 'max-h-96 opacity-100'
-                : 'max-h-0 opacity-0'
+              openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
             }`}
           >
             <div className="pb-6 text-zinc-600 dark:text-zinc-400">
@@ -425,13 +413,7 @@ function FAQAccordion() {
   )
 }
 
-function StepContent({
-  step,
-  index,
-}: {
-  step: (typeof steps)[0]
-  index: number
-}) {
+function StepContent({ step }: { step: (typeof steps)[0] }) {
   const [isVisible, setIsVisible] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -445,7 +427,7 @@ function StepContent({
       {
         threshold: 0.1,
         rootMargin: '0px 0px -100px 0px',
-      }
+      },
     )
 
     if (ref.current) {
@@ -463,9 +445,7 @@ function StepContent({
     <div
       ref={ref}
       className={`transition-all duration-1000 ${
-        isVisible
-          ? 'opacity-100 translate-y-0'
-          : 'opacity-0 translate-y-10'
+        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
       }`}
     >
       <div className="flex flex-col gap-8 md:flex-row md:items-center md:gap-12">
@@ -485,10 +465,10 @@ function StepContent({
 
         <div className="flex flex-1 items-center justify-center">
           <div
-            className={`flex h-32 w-32 items-center justify-center rounded-2xl border-2 border-zinc-200 bg-white text-black transition-all duration-1000 delay-300 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white ${
+            className={`flex h-32 w-32 items-center justify-center rounded-2xl border-2 border-zinc-200 bg-white text-black transition-all delay-300 duration-1000 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white ${
               isVisible
-                ? 'opacity-100 scale-100 rotate-0'
-                : 'opacity-0 scale-75 rotate-12'
+                ? 'scale-100 rotate-0 opacity-100'
+                : 'scale-75 rotate-12 opacity-0'
             }`}
           >
             {step.icon}
