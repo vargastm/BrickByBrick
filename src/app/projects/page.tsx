@@ -7,20 +7,29 @@ import { buildings, getPexelsImage } from './mockData'
 
 export default function Buildings() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('All Categories')
 
   const filteredBuildings = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return buildings
+    let filtered = buildings
+
+    if (selectedCategory !== 'All Categories') {
+      filtered = filtered.filter(
+        (building) => building.category === selectedCategory,
+      )
     }
 
-    const term = searchTerm.toLowerCase().trim()
-    return buildings.filter(
-      (building) =>
-        building.name.toLowerCase().includes(term) ||
-        building.location.toLowerCase().includes(term) ||
-        building.category.toLowerCase().includes(term),
-    )
-  }, [searchTerm])
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim()
+      filtered = filtered.filter(
+        (building) =>
+          building.name.toLowerCase().includes(term) ||
+          building.location.toLowerCase().includes(term) ||
+          building.category.toLowerCase().includes(term),
+      )
+    }
+
+    return filtered
+  }, [searchTerm, selectedCategory])
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-50 dark:from-[#0f101a] dark:via-zinc-950 dark:to-[#0f101a]">
       <section className="relative mt-16 flex h-64 items-center justify-center overflow-hidden border-b border-zinc-200 bg-gradient-to-r from-black via-zinc-900 to-black p-0 dark:border-zinc-800">
@@ -65,7 +74,11 @@ export default function Buildings() {
                 />
               </div>
               <div className="relative">
-                <select className="w-full appearance-none rounded-lg border border-zinc-300 bg-white px-4 py-2.5 pr-10 text-sm transition-all focus:border-black focus:ring-2 focus:ring-black/10 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-zinc-500">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full appearance-none rounded-lg border border-zinc-300 bg-white px-4 py-2.5 pr-10 text-sm transition-all focus:border-black focus:ring-2 focus:ring-black/10 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-zinc-500"
+                >
                   <option>All Categories</option>
                   <option>Residential</option>
                   <option>Commercial</option>
