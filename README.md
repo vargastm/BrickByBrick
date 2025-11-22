@@ -2,7 +2,7 @@
 
   <h1 align="center">
 
-    <img src="https://raw.githubusercontent.com/letpires/BrickByBrick/main/public/LOGO.png" width="200" />
+    <img src="https://github.com/vargastm/BrickByBrick/blob/main/ByB.png" width="200" />
 
   </h1> 
 
