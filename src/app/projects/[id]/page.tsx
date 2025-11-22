@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import InvestButton from '@/components/InvestButton'
+
 import { buildings, getPexelsImage } from '../mockData'
 
 interface ProjectPageProps {
@@ -239,9 +241,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 </div>
 
                 <div className="pt-4">
-                  <button className="w-full rounded-lg bg-black py-4 font-semibold text-white transition-all duration-300 hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200">
-                    Invest Now
-                  </button>
+                  <InvestButton project={project} />
                   <button className="mt-3 w-full rounded-lg border border-zinc-300 bg-white py-4 font-semibold text-zinc-900 transition-all duration-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800">
                     View Contract
                   </button>
