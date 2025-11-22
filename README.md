@@ -17,7 +17,7 @@ Coming soon.
 ### State & Queries
 - **TanStack Query** 5.90.10
 
-### Estilização
+### Styles
 - **Tailwind CSS** 4 
 
 ## Getting Started
