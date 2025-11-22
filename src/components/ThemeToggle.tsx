@@ -1,14 +1,14 @@
-"use client";
+'use client'
 
-import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme } from '@/contexts/ThemeContext'
 
 export default function ThemeToggle() {
-  const { theme, setTheme, mounted } = useTheme();
+  const { theme, setTheme, mounted } = useTheme()
 
   if (!mounted) {
     return (
       <button
-        className="p-2 rounded-lg text-zinc-600 hover:bg-zinc-300 dark:hover:bg-zinc-800 transition-colors"
+        className="rounded-lg p-2 text-zinc-600 transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-800"
         aria-label="Change theme"
         disabled
       >
@@ -24,17 +24,17 @@ export default function ThemeToggle() {
           <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
         </svg>
       </button>
-    );
+    )
   }
 
-  const isDark = theme === "dark";
+  const isDark = theme === 'dark'
 
   return (
     <button
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="h-10 w-10 m-0 flex items-center justify-center rounded-lg text-zinc-600 hover:bg-zinc-300 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors"
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      title={isDark ? "Dark mode" : "Light mode"}
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      className="m-0 flex h-10 w-10 items-center justify-center rounded-lg text-zinc-600 transition-colors hover:bg-zinc-300 dark:text-zinc-400 dark:hover:bg-zinc-800"
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={isDark ? 'Dark mode' : 'Light mode'}
     >
       {isDark ? (
         <svg
@@ -62,6 +62,5 @@ export default function ThemeToggle() {
         </svg>
       )}
     </button>
-  );
+  )
 }
-

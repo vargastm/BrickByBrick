@@ -1,18 +1,21 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import Header from "@/components/Header";
-import { Providers } from "@/providers/WagmiProvider";
-import { ThemeProvider } from "@/contexts/ThemeContext";
+import './globals.css'
+
+import type { Metadata } from 'next'
+import React from 'react'
+
+import Header from '@/components/Header'
+import { ThemeProvider } from '@/contexts/ThemeContext'
+import { Providers } from '@/providers/WagmiProvider'
 
 export const metadata: Metadata = {
-  title: "BrickByBrick",
-  description: "BrickByBrick is coming soon",
-};
+  title: 'BrickByBrick',
+  description: 'BrickByBrick is coming soon',
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -25,5 +28,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }
