@@ -2,7 +2,7 @@
 
   <h1 align="center">
 
-    <img src="./BrickByBrick/blob/main/ByB.png" width="200" />
+  <img src="./ByB.png" width="150px" /><br>
 
   </h1> 
 
