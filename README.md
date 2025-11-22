@@ -2,11 +2,12 @@
 
   <h1 align="center">
 
-    <img src="https://github.com/vargastm/BrickByBrick/blob/main/ByB.png" width="200" />
+    <img src="./BrickByBrick/blob/main/ByB.png" width="200" />
 
   </h1> 
 
-  <h3>◦ Build the Future, Brick by Brick. Tokenized real estate for builders and investors.</h3>
+  <h3>◦ Build the Future, Brick by Brick.
+    Tokenized real estate for builders and investors.</h3>
 
 </div>
 
@@ -143,21 +144,6 @@ BrickByBrick uses smart contracts to manage tokenization, milestone tracking, an
 
 **Secondary Trading:** Tokens can be traded on secondary markets, providing liquidity for investors.
 
-
-
-### Supported Chains
-
-
-
-- Ethereum Mainnet
-
-- Polygon
-
-- Optimism
-
-- Arbitrum
-
-- Base
 
 
 
