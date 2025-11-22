@@ -16,6 +16,12 @@ export default function Header() {
               ByB
             </Link>
             <Link
+              href="/how-it-works"
+              className="text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
+            >
+              How it Works
+            </Link>
+            <Link
               href="/projects"
               className="text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
             >
