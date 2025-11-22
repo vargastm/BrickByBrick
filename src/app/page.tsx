@@ -17,8 +17,8 @@ export default function Home() {
               Brick by Brick
             </h1>
             <p className="mb-8 text-xl text-zinc-300 md:text-2xl">
-              Invest in tokenized construction projects with onchain milestones,
-              AI valuation, and real-time progress tracking
+            For <strong>builders</strong> who need liquidity without discounting units.
+            For <strong>investors</strong> who want real estate exposure with safety, lower entry barriers, and guaranteed liquidity.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Link
