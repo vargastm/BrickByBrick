@@ -16,7 +16,7 @@ export default function Header() {
           <div className="flex items-center gap-6">
             <Link
               href="/"
-              className="text-xl font-bold text-black transition-colors hover:text-zinc-600 dark:text-zinc-50 dark:hover:text-zinc-300"
+              className="text-3xl font-bold text-black transition-colors hover:text-zinc-600 dark:text-zinc-50 dark:hover:text-zinc-300"
             >
               ByB
             </Link>
