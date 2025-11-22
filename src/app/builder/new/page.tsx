@@ -1,12 +1,24 @@
 'use client'
 
+import { Configuration, ContractsApi } from '@curvegrid/multibaas-sdk'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
-import { useAccount } from 'wagmi'
+import {
+  useAccount,
+  useSendTransaction,
+  useWaitForTransactionReceipt,
+} from 'wagmi'
+
+// MultiBaas configuration - these should be set as environment variables
+const MULTIBAAS_HOST = process.env.NEXT_PUBLIC_MULTIBAAS_HOST || ''
+const MULTIBAAS_API_KEY = process.env.NEXT_PUBLIC_MULTIBAAS_API_KEY || ''
+const MULTIBAAS_CONTRACT_NAME =
+  process.env.NEXT_PUBLIC_MULTIBAAS_CONTRACT_NAME || 'BuildingRegistry'
+const DEFAULT_ORACLE_ADDRESS = process.env.NEXT_PUBLIC_ORACLE_ADDRESS || ''
 
 export default function NewProjectPage() {
-  const { isConnected } = useAccount()
+  const { isConnected, address } = useAccount()
   const router = useRouter()
   const [formData, setFormData] = useState({
     name: '',
@@ -19,13 +31,131 @@ export default function NewProjectPage() {
     totalMilestones: '8',
     featured: false,
     description: '',
+    oracleAddress: DEFAULT_ORACLE_ADDRESS,
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: FormEvent) => {
+  const {
+    data: hash,
+    sendTransaction,
+    isPending: isPendingTransaction,
+  } = useSendTransaction()
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    })
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    console.log('Project data:', formData)
-    alert('Project created successfully!')
+    setError(null)
+    setIsSubmitting(true)
+
+    try {
+      // Validate required fields
+      if (!address) {
+        throw new Error('Wallet not connected')
+      }
+
+      if (!formData.oracleAddress) {
+        throw new Error('Oracle address is required')
+      }
+
+      if (!MULTIBAAS_HOST || !MULTIBAAS_API_KEY) {
+        throw new Error(
+          'MultiBaas configuration is missing. Please set NEXT_PUBLIC_MULTIBAAS_HOST and NEXT_PUBLIC_MULTIBAAS_API_KEY environment variables.',
+        )
+      }
+
+      // Create metadata URI (JSON string containing project metadata)
+      // const metadata = {
+      //   name: formData.name,
+      //   location: formData.location,
+      //   category: formData.category,
+      //   totalValue: formData.totalValue,
+      //   tokensAvailable: formData.tokensAvailable,
+      //   tokenName: formData.tokenName,
+      //   tokenSymbol: formData.tokenSymbol,
+      //   description: formData.description,
+      //   featured: formData.featured,
+      // }
+      const metadataURI = 'https://www.google.com'
+      // const metadataURI = JSON.stringify(metadata)
+
+      // Initialize MultiBaas client
+      const configuration = new Configuration({
+        basePath: MULTIBAAS_HOST,
+        accessToken: MULTIBAAS_API_KEY,
+      })
+      const contractsApi = new ContractsApi(configuration)
+
+      const contracts = await contractsApi.listContracts()
+      console.log(contracts)
+
+      // Get contract address (you may need to adjust this based on your setup)
+      // For now, we'll use the contract name as addressOrAlias
+      // const contractAddressOrAlias = 'buildingregistry2'
+
+      // Call the contract function using MultiBaas SDK
+      const response = await contractsApi.callContractFunction(
+        'buildingregistry2',
+        'buildingregistry',
+        'createBuilding',
+        {
+          args: [
+            formData.name,
+            metadataURI,
+            address,
+            formData.oracleAddress,
+            parseInt(formData.totalMilestones, 10),
+          ],
+          from: address,
+        },
+      )
+
+      const result = response.data.result
+
+      // Check if we got a transaction to sign
+      if (result.kind !== 'TransactionToSignResponse') {
+        throw new Error(
+          'Expected transaction to sign, but got method call response',
+        )
+      }
+
+      const transaction = result.tx
+
+      console.log(transaction)
+
+      // Send the transaction using wagmi
+      await sendTransaction({
+        to: transaction.to as `0x${string}`,
+        data: transaction.data as `0x${string}`,
+        value: transaction.value ? BigInt(transaction.value) : BigInt(0),
+        gas: transaction.gas ? BigInt(1000) : undefined,
+        gasPrice: transaction.gasPrice
+          ? BigInt(transaction.gasPrice)
+          : undefined,
+      })
+    } catch (err) {
+      console.error('Error creating building:', err)
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to create building. Please try again.',
+      )
+      setIsSubmitting(false)
+    }
   }
+
+  // Handle successful transaction
+  useEffect(() => {
+    if (isConfirmed && hash) {
+      setIsSubmitting(false)
+      alert('Project created successfully!')
+      router.push('/builder')
+    }
+  }, [isConfirmed, hash, router])
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -201,6 +331,28 @@ export default function NewProjectPage() {
                   className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm transition-all focus:border-black focus:ring-2 focus:ring-black/10 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-zinc-500"
                 />
               </div>
+
+              <div>
+                <label
+                  htmlFor="oracleAddress"
+                  className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                >
+                  Oracle Address *
+                </label>
+                <input
+                  type="text"
+                  id="oracleAddress"
+                  name="oracleAddress"
+                  required
+                  value={formData.oracleAddress}
+                  onChange={handleChange}
+                  placeholder="0x..."
+                  className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm transition-all focus:border-black focus:ring-2 focus:ring-black/10 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-zinc-500"
+                />
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  Address of the oracle contract for milestone verification
+                </p>
+              </div>
             </div>
           </div>
 
@@ -312,6 +464,30 @@ export default function NewProjectPage() {
             </div>
           </div>
 
+          {error && (
+            <div className="rounded-lg border border-red-300 bg-red-50 p-4 dark:border-red-700 dark:bg-red-900/20">
+              <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                {error}
+              </p>
+            </div>
+          )}
+
+          {isPendingTransaction && (
+            <div className="rounded-lg border border-blue-300 bg-blue-50 p-4 dark:border-blue-700 dark:bg-blue-900/20">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Transaction pending... Please confirm in your wallet.
+              </p>
+            </div>
+          )}
+
+          {isConfirming && (
+            <div className="rounded-lg border border-blue-300 bg-blue-50 p-4 dark:border-blue-700 dark:bg-blue-900/20">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Waiting for transaction confirmation...
+              </p>
+            </div>
+          )}
+
           <div className="flex gap-4">
             <Link
               href="/builder"
@@ -321,9 +497,12 @@ export default function NewProjectPage() {
             </Link>
             <button
               type="submit"
-              className="flex-1 rounded-lg bg-black px-6 py-3 font-semibold text-white transition-all duration-300 hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+              disabled={isSubmitting || isPendingTransaction || isConfirming}
+              className="flex-1 rounded-lg bg-black px-6 py-3 font-semibold text-white transition-all duration-300 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
             >
-              Create Project
+              {isSubmitting || isPendingTransaction || isConfirming
+                ? 'Creating...'
+                : 'Create Project'}
             </button>
           </div>
         </form>

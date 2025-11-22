@@ -11,6 +11,7 @@
     "lint:check": "eslint . --ext .ts,.tsx --debug"
   },
   "dependencies": {
+    "@curvegrid/multibaas-sdk": "^1.1.0",
     "@rainbow-me/rainbowkit": "^2.2.9",
     "@tanstack/react-query": "^5.90.10",
     "@vercel/speed-insights": "^1.2.0",
