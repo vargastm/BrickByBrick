@@ -75,11 +75,11 @@ export default function Home() {
               </svg>
             </div>
             <h3 className="mb-2 text-xl font-bold text-zinc-900 dark:text-white">
-              Onchain Milestones
+            Tokenized Funding
             </h3>
             <p className="text-zinc-600 dark:text-zinc-400">
-              Track project progress transparently with blockchain-verified
-              milestones and smart contracts
+
+            Finance projects transparently through blockchain tokenization.
             </p>
           </div>
 
@@ -100,11 +100,10 @@ export default function Home() {
               </svg>
             </div>
             <h3 className="mb-2 text-xl font-bold text-zinc-900 dark:text-white">
-              AI Valuation
+            Accessible Investments
             </h3>
             <p className="text-zinc-600 dark:text-zinc-400">
-              Get accurate property valuations powered by artificial
-              intelligence and market analysis
+            Invest in real estate with a low entry ticket and fractional tokens.
             </p>
           </div>
 
@@ -125,11 +124,10 @@ export default function Home() {
               </svg>
             </div>
             <h3 className="mb-2 text-xl font-bold text-zinc-900 dark:text-white">
-              Real-time Tracking
+            AI-Verified Escrow Security
             </h3>
             <p className="text-zinc-600 dark:text-zinc-400">
-              Monitor your investments in real-time with live updates on
-              construction progress and milestones
+            Funds release only after AI-validated, on-chain construction progress.
             </p>
           </div>
         </div>
