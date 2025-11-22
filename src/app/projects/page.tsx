@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 import { buildings, getPexelsImage } from './mockData'
 
 export default function Buildings() {
@@ -192,9 +194,12 @@ export default function Buildings() {
                   </div>
                 </div>
 
-                <button className="w-full rounded-lg bg-black py-3 font-semibold text-white transition-all duration-300 hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200">
+                <Link
+                  href={`/projects/${building.id}`}
+                  className="block w-full rounded-lg bg-black py-3 text-center font-semibold text-white transition-all duration-300 hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+                >
                   View Project
-                </button>
+                </Link>
               </div>
             </div>
           ))}
