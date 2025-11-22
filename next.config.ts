@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   devIndicators: false,
-  // Permite scripts inline para telemetria do Base Account
   async headers() {
     return [
       {
@@ -22,6 +21,24 @@ const nextConfig = {
       },
     ]
   },
+  webpack: (config: any) => {
+    config.module = config.module || {}
+    config.module.rules = config.module.rules || []
+
+    config.module.rules.push({
+      test: /node_modules\/thread-stream\/test/,
+      use: 'ignore-loader',
+    })
+
+    config.module.rules.push({
+      test: /\.(md|zip|sh|test\.js|test\.mjs|bench\.js|LICENSE)$/,
+      include: /node_modules/,
+      use: 'ignore-loader',
+    })
+
+    return config
+  },
+  turbopack: {},
 }
 
 module.exports = nextConfig
