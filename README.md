@@ -4,6 +4,7 @@
 
   <img src="./public/assets/byb.png" width="150px" /><br>
 
+
   </h1> 
 
   <h3>◦ Build the Future, Brick by Brick.
@@ -11,7 +12,10 @@
 
 </div>
 
-
+## 💻 Preview
+<div align="center">
+  <img src="./public/assets/byb-mockup.png" width="650px" />
+</div>
 
 ## 📖 Table of Contents
 
