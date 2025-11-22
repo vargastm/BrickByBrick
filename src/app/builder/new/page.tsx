@@ -1,9 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { type ChangeEvent, type FormEvent, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
+import { useAccount } from 'wagmi'
 
 export default function NewProjectPage() {
+  const { isConnected } = useAccount()
+  const router = useRouter()
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -32,6 +36,16 @@ export default function NewProjectPage() {
       [name]:
         type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     }))
+  }
+
+  useEffect(() => {
+    if (!isConnected) {
+      router.push('/')
+    }
+  }, [isConnected, router])
+
+  if (!isConnected) {
+    return null
   }
 
   return (

@@ -1,8 +1,12 @@
+'use client'
+
 import Link from 'next/link'
+import { useAccount } from 'wagmi'
 
 import { buildings, getPexelsImage } from './projects/mockData'
 
 export default function Home() {
+  const { isConnected } = useAccount()
   const featuredProjects = buildings.filter((b) => b.featured).slice(0, 3)
 
   return (
@@ -18,9 +22,10 @@ export default function Home() {
             </h1>
             <p className="mb-8 text-xl text-zinc-300 md:text-2xl">
               For <strong>builders</strong> who need liquidity without
-              discounting units. For <strong>investors</strong> who want real
-              estate exposure with safety, lower entry barriers, and guaranteed
-              liquidity.
+              discounting units.
+              <br />
+              For <strong>investors</strong> wanting safe, liquid, accessible
+              real estate.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Link
@@ -29,12 +34,14 @@ export default function Home() {
               >
                 Explore Projects
               </Link>
-              <Link
-                href="/investments"
-                className="rounded-lg border-2 border-white px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-white/10"
-              >
-                View Investments
-              </Link>
+              {isConnected && (
+                <Link
+                  href="/investments"
+                  className="rounded-lg border-2 border-white px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-white/10"
+                >
+                  View Investments
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -139,7 +146,7 @@ export default function Home() {
           <div className="grid gap-8 md:grid-cols-2">
             <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
               <h3 className="mb-4 text-2xl font-bold text-zinc-900 dark:text-white">
-                For Builders:
+                For Builders
               </h3>
               <p className="text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
                 Raise capital without sacrificing margins.
@@ -152,7 +159,7 @@ export default function Home() {
 
             <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
               <h3 className="mb-4 text-2xl font-bold text-zinc-900 dark:text-white">
-                For Investors:
+                For Investors
               </h3>
               <p className="text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
                 Access premium real estate with a low entry ticket.
@@ -315,11 +322,11 @@ export default function Home() {
 
       <section className="border-t border-zinc-200 bg-gradient-to-r from-black via-zinc-900 to-black dark:border-zinc-800">
         <div className="container mx-auto max-w-7xl px-4 py-20">
-          <div className="mx-auto max-w-3xl text-center">
+          <div className="mx-auto flex max-w-3xl flex-col items-center justify-center text-center">
             <h2 className="mb-4 text-4xl font-bold text-white md:text-5xl">
               Ready to Start Investing?
             </h2>
-            <p className="mb-8 text-xl text-zinc-300">
+            <p className="mb-8 max-w-2xl text-xl text-zinc-300">
               Join the future of real estate investment with blockchain-powered
               transparency and AI-driven insights
             </p>
@@ -330,12 +337,14 @@ export default function Home() {
               >
                 Browse Projects
               </Link>
-              <Link
-                href="/builder"
-                className="rounded-lg border-2 border-white px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-white/10"
-              >
-                List Your Project
-              </Link>
+              {isConnected && (
+                <Link
+                  href="/builder"
+                  className="rounded-lg border-2 border-white px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-white/10"
+                >
+                  List Your Project
+                </Link>
+              )}
             </div>
           </div>
         </div>
