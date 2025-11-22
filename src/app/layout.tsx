@@ -1,5 +1,6 @@
 import './globals.css'
 
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
 import React from 'react'
 
@@ -26,6 +27,7 @@ export default function RootLayout({
             <HeaderWrapper />
             {children}
             <Footer />
+            <SpeedInsights />
           </WagmiProviderWrapper>
         </ThemeProvider>
       </body>
