@@ -3,6 +3,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import React from 'react'
 
+import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { Providers } from '@/providers/WagmiProvider'
@@ -24,6 +25,7 @@ export default function RootLayout({
           <Providers>
             <Header />
             {children}
+            <Footer />
           </Providers>
         </ThemeProvider>
       </body>
