@@ -21,6 +21,18 @@ export default function Header() {
             >
               Projects
             </Link>
+            <Link
+              href="/investments"
+              className="text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
+            >
+              My Investments
+            </Link>
+            <Link
+              href="/builder"
+              className="text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
+            >
+              Builder
+            </Link>
           </div>
 
           <nav className="hidden items-center gap-4 md:flex">
