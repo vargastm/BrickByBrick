@@ -10,6 +10,8 @@ export default function NewProjectPage() {
     category: 'Residential',
     totalValue: '',
     tokensAvailable: '',
+    tokenName: '',
+    tokenSymbol: '',
     totalMilestones: '8',
     featured: false,
     description: '',
@@ -193,6 +195,47 @@ export default function NewProjectPage() {
               Financial Information
             </h2>
             <div className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="tokenName"
+                    className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Token Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="tokenName"
+                    name="tokenName"
+                    maxLength={25}
+                    required
+                    value={formData.tokenName}
+                    onChange={handleChange}
+                    placeholder="e.g., Luxury Tower Token"
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm transition-all focus:border-black focus:ring-2 focus:ring-black/10 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-zinc-500"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="tokenSymbol"
+                    className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Token Symbol *
+                  </label>
+                  <input
+                    type="text"
+                    id="tokenSymbol"
+                    name="tokenSymbol"
+                    maxLength={3}
+                    required
+                    value={formData.tokenSymbol}
+                    onChange={handleChange}
+                    placeholder="e.g., LTT"
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm transition-all focus:border-black focus:ring-2 focus:ring-black/10 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-zinc-500"
+                  />
+                </div>
+              </div>
               <div className="grid gap-6 md:grid-cols-2">
                 <div>
                   <label

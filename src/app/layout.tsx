@@ -4,9 +4,9 @@ import type { Metadata } from 'next'
 import React from 'react'
 
 import Footer from '@/components/Footer'
-import Header from '@/components/Header'
+import HeaderWrapper from '@/components/HeaderWrapper'
 import { ThemeProvider } from '@/contexts/ThemeContext'
-import { Providers } from '@/providers/WagmiProvider'
+import { WagmiProviderWrapper } from '@/providers/WagmiProviderWrapper'
 
 export const metadata: Metadata = {
   title: 'BrickByBrick',
@@ -22,11 +22,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
         <ThemeProvider>
-          <Providers>
-            <Header />
+          <WagmiProviderWrapper>
+            <HeaderWrapper />
             {children}
             <Footer />
-          </Providers>
+          </WagmiProviderWrapper>
         </ThemeProvider>
       </body>
     </html>
