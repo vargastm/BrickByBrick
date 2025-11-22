@@ -1,8 +1,12 @@
+'use client'
+
 import Link from 'next/link'
+import { useAccount } from 'wagmi'
 
 import { buildings, getPexelsImage } from './projects/mockData'
 
 export default function Home() {
+  const { isConnected } = useAccount()
   const featuredProjects = buildings.filter((b) => b.featured).slice(0, 3)
 
   return (
@@ -29,12 +33,14 @@ export default function Home() {
               >
                 Explore Projects
               </Link>
-              <Link
-                href="/investments"
-                className="rounded-lg border-2 border-white px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-white/10"
-              >
-                View Investments
-              </Link>
+              {isConnected && (
+                <Link
+                  href="/investments"
+                  className="rounded-lg border-2 border-white px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-white/10"
+                >
+                  View Investments
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -330,12 +336,14 @@ export default function Home() {
               >
                 Browse Projects
               </Link>
-              <Link
-                href="/builder"
-                className="rounded-lg border-2 border-white px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-white/10"
-              >
-                List Your Project
-              </Link>
+              {isConnected && (
+                <Link
+                  href="/builder"
+                  className="rounded-lg border-2 border-white px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-white/10"
+                >
+                  List Your Project
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -1,9 +1,26 @@
+'use client'
+
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+import { useAccount } from 'wagmi'
 
 import { buildings, getPexelsImage } from '../projects/mockData'
 
 export default function BuilderDashboard() {
+  const { isConnected } = useAccount()
+  const router = useRouter()
   const myProjects = buildings.filter((b) => b.id <= 3)
+
+  useEffect(() => {
+    if (!isConnected) {
+      router.push('/')
+    }
+  }, [isConnected, router])
+
+  if (!isConnected) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-50 dark:from-[#0f101a] dark:via-zinc-950 dark:to-[#0f101a]">
