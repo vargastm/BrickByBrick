@@ -37,6 +37,12 @@ export default function Footer() {
                 >
                   Projects
                 </Link>
+                <Link
+                  href="/how-it-works"
+                  className="text-sm text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
+                >
+                  How it Works
+                </Link>
               </nav>
             </div>
 
@@ -46,7 +52,7 @@ export default function Footer() {
               </h3>
               <div className="flex flex-col space-y-2">
                 <a
-                  href="https://github.com"
+                  href="https://github.com/vargastm/BrickByBrick"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
@@ -54,7 +60,7 @@ export default function Footer() {
                   GitHub
                 </a>
                 <a
-                  href="https://twitter.com"
+                  href="/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
