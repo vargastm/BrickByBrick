@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import InvestButton from '@/components/InvestButton'
+import MilestoneUploadButton from '@/components/MilestoneUploadButton'
 
 import { buildings, getPexelsImage } from '../mockData'
 
@@ -143,6 +144,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                     const milestoneNumber = index + 1
                     const isCompleted =
                       milestoneNumber <= project.milestonesCompleted
+                    const isFirstIncomplete =
+                      !isCompleted &&
+                      milestoneNumber === project.milestonesCompleted + 1
                     return (
                       <div
                         key={milestoneNumber}
@@ -191,6 +195,12 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                               : 'In progress or pending'}
                           </p>
                         </div>
+                        {isFirstIncomplete && (
+                          <MilestoneUploadButton
+                            milestoneNumber={milestoneNumber}
+                            projectId={project.id}
+                          />
+                        )}
                       </div>
                     )
                   },
