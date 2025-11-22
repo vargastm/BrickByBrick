@@ -2,10 +2,13 @@
 
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import Link from 'next/link'
+import { useAccount } from 'wagmi'
 
 import ThemeToggle from './ThemeToggle'
 
 export default function Header() {
+  const { isConnected } = useAccount()
+
   return (
     <header className="fixed top-0 z-50 w-full bg-zinc-200 backdrop-blur-sm dark:bg-zinc-900">
       <div className="container mx-auto px-4">
@@ -23,18 +26,22 @@ export default function Header() {
             >
               Projects
             </Link>
-            <Link
-              href="/investments"
-              className="text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
-            >
-              My Investments
-            </Link>
-            <Link
-              href="/builder"
-              className="text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
-            >
-              Builder
-            </Link>
+            {isConnected && (
+              <>
+                <Link
+                  href="/investments"
+                  className="text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
+                >
+                  My Investments
+                </Link>
+                <Link
+                  href="/builder"
+                  className="text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"
+                >
+                  Builder
+                </Link>
+              </>
+            )}
             <Link
               href="/how-it-works"
               className="text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-200"

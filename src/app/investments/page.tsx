@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import {
   Area,
   AreaChart,
@@ -10,6 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { useAccount } from 'wagmi'
 
 import { useTheme } from '@/contexts/ThemeContext'
 
@@ -24,6 +27,18 @@ import {
 
 export default function InvestmentsPage() {
   const { theme } = useTheme()
+  const { isConnected } = useAccount()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isConnected) {
+      router.push('/')
+    }
+  }, [isConnected, router])
+
+  if (!isConnected) {
+    return null
+  }
   const totalInvested = getTotalInvested()
   const totalCurrentValue = getTotalCurrentValue()
   const totalReturn = getTotalReturn()

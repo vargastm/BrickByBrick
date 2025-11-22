@@ -1,6 +1,8 @@
 'use client'
 
+import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useState } from 'react'
+import { useAccount } from 'wagmi'
 
 import { type Building } from '@/app/projects/mockData'
 
@@ -11,6 +13,8 @@ interface InvestButtonProps {
 }
 
 export default function InvestButton({ project }: InvestButtonProps) {
+  const { isConnected } = useAccount()
+  const { openConnectModal } = useConnectModal()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const handleInvest = async (amount: number, tokens: number) => {
@@ -35,6 +39,17 @@ export default function InvestButton({ project }: InvestButtonProps) {
     //   value: parseEther(amount.toString()),
     // })
     // await waitForTransaction({ hash })
+  }
+
+  if (!isConnected) {
+    return (
+      <button
+        onClick={openConnectModal}
+        className="w-full rounded-lg bg-black py-4 font-semibold text-white transition-all duration-300 hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+      >
+        Connect Wallet
+      </button>
+    )
   }
 
   return (
