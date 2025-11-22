@@ -2,7 +2,7 @@
 
   <h1 align="center">
 
-  <img src="./ByB.png" width="150px" /><br>
+  <img src="./public/assets/byb.png" width="150px" /><br>
 
   </h1> 
 
