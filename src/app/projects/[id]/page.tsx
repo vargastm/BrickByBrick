@@ -58,13 +58,48 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         ? Math.round((rawData.currentMilestone / rawData.totalMilestones) * 100)
         : 0
 
+    // Fetch sale information from buildingsalemanager3
+    let totalValue = 5000000
+    let tokensAvailable = 250000
+
+    try {
+      const saleResponse = await contractsApi.callContractFunction(
+        'buildingsalemanager3',
+        'buildingsalemanager',
+        'getSale',
+        {
+          args: [id],
+        },
+      )
+
+      const saleResult = saleResponse.data.result as any
+      const saleOutput = saleResult.output
+
+      
+      const maxTokensForSaleWei = BigInt(saleOutput[4] || saleOutput.maxTokensForSale || '0')
+      const tokenPriceWei = BigInt(saleOutput[3] || saleOutput.tokenPrice || '0')
+      const tokensSoldWei = BigInt(saleOutput[5] || saleOutput.tokensSold || '0')
+
+     
+      const maxTokens = Number(maxTokensForSaleWei) / 1e18
+      const tokenPrice = Number(tokenPriceWei) / 1e18
+      const tokensSold = Number(tokensSoldWei) / 1e18
+
+      
+      totalValue = Math.round(maxTokens * tokenPrice)
+      
+      tokensAvailable = Math.round(maxTokens - tokensSold)
+    } catch (saleError) {
+      console.error('Error fetching sale data:', saleError)
+    }
+
     projectData = {
       ...rawData,
       progress: progressCalc,
       milestonesCompleted: rawData.currentMilestone,
 
-      totalValue: 5000000,
-      tokensAvailable: 250000,
+      totalValue,
+      tokensAvailable,
       category: 'Real Estate',
     }
   } catch (e) {
