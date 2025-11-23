@@ -747,7 +747,7 @@ export default function NewProjectPage() {
           },
         ],
         functionName: 'approve',
-        args: [saleManagerAddress, 200],
+        args: [saleManagerAddress, BigInt(200)],
       })
 
       // Send approval transaction and wait for it to complete
