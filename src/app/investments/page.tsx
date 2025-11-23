@@ -17,8 +17,8 @@ import { useAccount } from 'wagmi'
 import { useTheme } from '@/contexts/ThemeContext'
 
 import {
-  getProjectImage,
   getPortfolioHistory,
+  getProjectImage,
   getTotalCurrentValue,
   getTotalInvested,
   getTotalReturn,
@@ -299,7 +299,7 @@ export default function InvestmentsPage() {
                           <img
                             src={getProjectImage(investment.project)}
                             alt={investment.project.name}
-                            className="h-full w-full object-cover"
+                            className="h-[255px] w-full object-cover"
                           />
                           <div className="absolute right-0 bottom-0 left-0 h-1 bg-black/20">
                             <div
