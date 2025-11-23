@@ -349,12 +349,12 @@ export default function NewProjectPage() {
         {
           onSuccess: (tx) => {
             console.log('Token contract set successfully:', tx)
-            handleSubmit4(
-              tx as `0x${string}`,
-              buildingId,
-              contractsApi,
-              tokenAddress,
-            )
+            // handleSubmit4(
+            //   tx as `0x${string}`,
+            //   buildingId,
+            //   contractsApi,
+            //   tokenAddress,
+            // )
           },
           onError: (error) => {
             console.error('Error setting token contract:', error)
