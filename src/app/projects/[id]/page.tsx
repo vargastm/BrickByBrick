@@ -37,7 +37,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   // RECOMENDAÇÃO: Mova a accessToken para uma variável de ambiente (process.env.MULTIBAAS_API_KEY)
   const config = new MultiBaas.Configuration({
     basePath: "https://jcepmtno6bfbdle4wuqir4thoi.multibaas.com/api/v0",
-    accessToken: process.env.MULTIBAAS_API_KEY || "", 
+    accessToken: process.env.NEXT_PUBLIC_MULTIBAAS_API_KEY || "", 
   });
   
   const contractsApi = new MultiBaas.ContractsApi(config);
