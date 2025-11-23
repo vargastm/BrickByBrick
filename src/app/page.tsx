@@ -1,12 +1,119 @@
 'use client'
 
+import * as MultiBaas from '@curvegrid/multibaas-sdk'
+import { isAxiosError } from 'axios'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 
-import { buildings, getPexelsImage } from './projects/mockData'
+import { getPexelsImage } from './projects/mockData'
+
+interface Building {
+  id: number
+  name: string
+  location: string
+  category: string
+  progress: number
+  milestonesCompleted: number
+  totalMilestones: number
+  totalValue: string
+  tokensAvailable: string
+  featured: boolean
+  description: string
+  status: number
+}
 
 export default function Home() {
   const { isConnected } = useAccount()
+  const [buildings, setBuildings] = useState<Building[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  const config = new MultiBaas.Configuration({
+    basePath: process.env.NEXT_PUBLIC_MULTIBAAS_HOST || '',
+    accessToken: process.env.NEXT_PUBLIC_MULTIBAAS_API_KEY,
+  })
+  const contractsApi = new MultiBaas.ContractsApi(config)
+  const deployedAddressOrAlias = 'buildingregistry4'
+  const contractLabel = 'buildingregistry'
+
+  useEffect(() => {
+    const fetchBlockchainData = async () => {
+      setIsLoading(true)
+
+      try {
+        const totalResp = await contractsApi.callContractFunction(
+          deployedAddressOrAlias,
+          contractLabel,
+          'getTotalBuildings',
+          { args: [] },
+        )
+
+        const totalResult = totalResp.data.result as any
+        const totalRaw = totalResult.output
+        const totalCount = Number(totalRaw)
+
+        if (isNaN(totalCount) || totalCount <= 0) {
+          setBuildings([])
+          return
+        }
+
+        const promises = []
+        for (let i = 1; i <= totalCount; i++) {
+          promises.push(
+            contractsApi.callContractFunction(
+              deployedAddressOrAlias,
+              contractLabel,
+              'getBuilding',
+              { args: [i.toString()] },
+            ),
+          )
+        }
+
+        const results = await Promise.all(promises)
+
+        const formattedBuildings: Building[] = results.map((res: any) => {
+          const outputs = res.data.result.output
+
+          const currentMilestone = Number(outputs[8])
+          const totalMilestones = Number(outputs[7])
+          const progressCalc =
+            totalMilestones > 0
+              ? Math.round((currentMilestone / totalMilestones) * 100)
+              : 0
+
+          return {
+            id: Number(outputs[0]),
+            name: String(outputs[1]),
+            description: String(outputs[11]),
+            location: String(outputs[12]),
+            featured: Boolean(outputs[10]),
+            status: Number(outputs[6]),
+
+            milestonesCompleted: currentMilestone,
+            totalMilestones: totalMilestones,
+            progress: progressCalc,
+
+            category: 'Comercial',
+            totalValue: '1,500,000',
+            tokensAvailable: '50,000',
+          }
+        })
+
+        setBuildings(formattedBuildings)
+      } catch (e) {
+        if (isAxiosError(e)) {
+          console.error('❌ Erro MultiBaas:', e.response?.data)
+        } else {
+          console.error('❌ Erro JS:', e)
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchBlockchainData()
+  }, [])
+
   const featuredProjects = buildings.filter((b) => b.featured).slice(0, 3)
 
   return (
@@ -184,14 +291,43 @@ export default function Home() {
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
-            {featuredProjects.map((project) => (
-              <Link
-                key={project.id}
-                href={`/projects/${project.id}`}
-                className="group block"
-              >
-                <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
+            {isLoading ? (
+              [...Array(3)].map((_, index) => (
+                <div
+                  key={index}
+                  className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+                >
                   <div className="relative h-64 overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
+                    <div className="h-full w-full animate-pulse bg-zinc-200 dark:bg-zinc-700"></div>
+                  </div>
+                  <div className="p-6">
+                    <div className="mb-3 h-5 w-20 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-700"></div>
+                    <div className="mb-1 h-6 w-3/4 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                    <div className="mb-4 h-4 w-1/2 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                    <div className="mb-3 space-y-2">
+                      <div className="flex items-baseline justify-between">
+                        <div className="h-3 w-24 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                        <div className="h-5 w-32 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : featuredProjects.length === 0 ? (
+              <div className="col-span-full py-12 text-center">
+                <p className="text-lg text-zinc-600 dark:text-zinc-400">
+                  No featured projects available
+                </p>
+              </div>
+            ) : (
+              featuredProjects.map((project) => (
+                <Link
+                  key={project.id}
+                  href={`/projects/${project.id}`}
+                  className="group block"
+                >
+                  <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
+                    <div className="relative h-64 overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
                     <img
                       src={getPexelsImage(project.id)}
                       alt={project.name}
@@ -266,7 +402,7 @@ export default function Home() {
                   </div>
                 </div>
               </Link>
-            ))}
+            )))}
           </div>
 
           <div className="mt-12 text-center">
