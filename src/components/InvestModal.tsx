@@ -21,14 +21,15 @@ export default function InvestModal({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-// Verificamos se já é um número. Se for, usa direto. Se for string, faz o replace.
-const totalValueNum = typeof project.totalValue === 'number'
-  ? project.totalValue
-  : parseFloat(project.totalValue.replace(/[^0-9.]/g, ''))
+  const totalValueNum =
+    typeof project.totalValue === 'number'
+      ? project.totalValue
+      : parseFloat(project.totalValue.replace(/[^0-9.]/g, ''))
 
-const tokensAvailableNum = typeof project.tokensAvailable === 'number'
-  ? project.tokensAvailable
-  : parseFloat(project.tokensAvailable.replace(/[^0-9.]/g, ''))
+  const tokensAvailableNum =
+    typeof project.tokensAvailable === 'number'
+      ? project.tokensAvailable
+      : parseFloat(project.tokensAvailable.replace(/[^0-9.]/g, ''))
   const pricePerToken = totalValueNum / tokensAvailableNum
 
   const tokenAmountNum = parseFloat(tokenAmount) || 0

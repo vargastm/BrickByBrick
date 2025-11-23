@@ -1,74 +1,44 @@
+import * as MultiBaas from '@curvegrid/multibaas-sdk'
+import { isAxiosError } from 'axios'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import * as MultiBaas from "@curvegrid/multibaas-sdk"
-import { isAxiosError } from "axios"
 
 import InvestButton from '@/components/InvestButton'
 import MilestoneUploadButton from '@/components/MilestoneUploadButton'
 
-// Função auxiliar para imagens (mantida do seu código original)
 import { getPexelsImage } from '../mockData'
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>
 }
 
-// Definição da ordem de retorno do Contrato baseada na sua lista de outputs
-interface ContractResponse {
-  id: number;             // uint256
-  name: string;           // string
-  metadataURI: string;    // string
-  developer: string;      // address
-  oracle: string;         // address
-  tokenContract: string;  // address
-  status: number;         // uint8
-  totalMilestones: number;// uint8
-  currentMilestone: number;// uint8
-  exists: boolean;        // bool
-  featured: boolean;      // bool
-  description: string;    // string
-  location: string;       // string
-}
-
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { id } = await params
-  
-  // 1. Configuração do MultiBaas
-  // RECOMENDAÇÃO: Mova a accessToken para uma variável de ambiente (process.env.MULTIBAAS_API_KEY)
+
   const config = new MultiBaas.Configuration({
-    basePath: "https://jcepmtno6bfbdle4wuqir4thoi.multibaas.com/api/v0",
-    accessToken: process.env.NEXT_PUBLIC_MULTIBAAS_API_KEY || "", 
-  });
-  
-  const contractsApi = new MultiBaas.ContractsApi(config);
-  
-  let projectData: any = null;
+    basePath: process.env.NEXT_PUBLIC_MULTIBAAS_HOST || '',
+    accessToken: process.env.NEXT_PUBLIC_MULTIBAAS_API_KEY || '',
+  })
+
+  const contractsApi = new MultiBaas.ContractsApi(config)
+
+  let projectData: any = null
 
   try {
-    // 2. Chamada ao Contrato
     const response = await contractsApi.callContractFunction(
-      "buildingregistry4", // deployedAddressOrAlias
-      "buildingregistry",  // contractLabel
-      "getBuilding",       // contractMethod
+      'buildingregistry4',
+      'buildingregistry',
+      'getBuilding',
       {
-        args: [id]         // O ID vindo da URL
-      }
-    );
+        args: [id],
+      },
+    )
 
-    // O MultiBaas retorna os dados em `response.data.result.output`
-    // Dependendo da versão do SDK/API, pode vir como um array ou objeto. 
-    // Assumindo que vem estruturado na ordem do ABI:
-    const output = response.data.result.output;
+    const output = response.data.result.output
 
-    // 3. Mapeamento dos dados brutos para o formato da UI
-    // Nota: Assumindo que o output é um array posicional ou objeto tipado
     const rawData = {
       id: Number(output.id || output[0]),
       name: String(output.name || output[1]),
-      // metadataURI: output.metadataURI || output[2], // Não usado na UI atual
-      // developer: output.developer || output[3],     // Não usado na UI atual
-      // oracle: output.oracle || output[4],           // Não usado na UI atual
-      // tokenContract: output.tokenContract || output[5], // Não usado na UI atual
       status: Number(output.status || output[6]),
       totalMilestones: Number(output.totalMilestones || output[7]),
       currentMilestone: Number(output.currentMilestone || output[8]),
@@ -76,39 +46,31 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       featured: Boolean(output.featured || output[10]),
       description: String(output.description || output[11]),
       location: String(output.location || output[12]),
-    };
-
-    // Se o contrato diz que não existe, retornamos 404
-    if (!rawData.exists) {
-      notFound();
     }
 
-    // 4. Construção do Objeto Final
-    // Calculamos o progresso baseado nos milestones retornados
-    const progressCalc = rawData.totalMilestones > 0 
-      ? Math.round((rawData.currentMilestone / rawData.totalMilestones) * 100) 
-      : 0;
+    if (!rawData.exists) {
+      notFound()
+    }
+
+    const progressCalc =
+      rawData.totalMilestones > 0
+        ? Math.round((rawData.currentMilestone / rawData.totalMilestones) * 100)
+        : 0
 
     projectData = {
       ...rawData,
       progress: progressCalc,
       milestonesCompleted: rawData.currentMilestone,
-      
-      // CAMPOS MOCKADOS (Não presentes no retorno do contrato fornecido)
-      // Você deve adicionar isso ao contrato ou buscar de outra fonte (ex: metadataURI)
-      totalValue: 5000000, // Valor fictício
-      tokensAvailable: 250000, // Valor fictício
-      category: "Real Estate", // Valor padrão
-    };
 
-  } catch (e) {
-    console.error("Error fetching building data:", e);
-    if (isAxiosError(e) && e.response?.status === 404) {
-       notFound();
+      totalValue: 5000000,
+      tokensAvailable: 250000,
+      category: 'Real Estate',
     }
-    // Se der erro na API, pode optar por lançar erro ou notFound
-    // notFound(); 
-    // Por enquanto, vamos deixar passar para renderizar o erro ou fallback
+  } catch (e) {
+    console.error('Error fetching building data:', e)
+    if (isAxiosError(e) && e.response?.status === 404) {
+      notFound()
+    }
     return (
       <div className="flex min-h-screen items-center justify-center text-red-500">
         Error loading project data. Please try again later.
@@ -116,7 +78,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     )
   }
 
-  const project = projectData;
+  const project = projectData
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-50 dark:from-[#0f101a] dark:via-zinc-950 dark:to-[#0f101a]">
@@ -188,7 +150,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <div className="space-y-8 lg:col-span-2">
             <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
               <div className="relative h-96 overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
-                {/* Nota: getPexelsImage ainda usa o ID para pegar imagem mockada */}
                 <img
                   src={getPexelsImage(project.id)}
                   alt={project.name}
@@ -232,7 +193,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 Project Milestones
               </h2>
               <div className="space-y-4">
-                {/* Convertemos o número de milestones em um array para o map */}
                 {Array.from({ length: project.totalMilestones }).map(
                   (_, index) => {
                     const milestoneNumber = index + 1
