@@ -4,7 +4,7 @@ import { Configuration, ContractsApi } from '@curvegrid/multibaas-sdk'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
-import { decodeEventLog } from 'viem'
+import { decodeEventLog, encodeFunctionData } from 'viem'
 import {
   useAccount,
   usePublicClient,
@@ -89,9 +89,16 @@ export default function NewProjectPage() {
       })
       const contractsApi = new ContractsApi(configuration)
 
+      // await handleSubmit8(
+      //   '',
+      //   BigInt(2),
+      //   contractsApi,
+      //   '0x0B78a7484B665d2A300C57c79cb5d4E305e1C752',
+      // )
+
       // Call the contract function using MultiBaas SDK
       const response = await contractsApi.callContractFunction(
-        'buildingregistry5',
+        'buildingregistry8',
         'buildingregistry',
         'createBuilding',
         {
@@ -204,7 +211,7 @@ export default function NewProjectPage() {
 
     // Call createBuildingToken on TokenFactory
     const tokenFactoryResponse = await contractsApi.callContractFunction(
-      'buildingtokenfactory4', // Update with your MultiBaas instance name
+      'buildingtokenfactory7', // Update with your MultiBaas instance name
       'buildingtokenfactory',
       'createBuildingToken',
       {
@@ -305,7 +312,7 @@ export default function NewProjectPage() {
     // Step 1: Link token to building in registry
     try {
       const setTokenResponse = await contractsApi.callContractFunction(
-        'buildingregistry5',
+        'buildingregistry8',
         'buildingregistry',
         'setTokenContract',
         {
@@ -396,28 +403,17 @@ export default function NewProjectPage() {
       const tokensAvailableNum = parseFloat(tokensAvailableStr)
 
       // Token price in wei per token (assuming quote token has 18 decimals)
-      const tokenPrice = BigInt(
-        Math.floor((totalValueNum / tokensAvailableNum) * 1e18).toString(),
-      )
+      // const tokenPrice = BigInt(
+      //   Math.floor((totalValueNum / tokensAvailableNum) * 1e18).toString(),
+      // )
 
       // Max tokens for sale in wei (assuming 18 decimals)
       const maxTokensForSale = BigInt(
         Math.floor(tokensAvailableNum * 1e18).toString(),
       )
 
-      console.log('tokenPrice', {
-        args: [
-          buildingId.toString(),
-          tokenAddress,
-          QUOTE_TOKEN_ADDRESS,
-          tokenPrice.toString(),
-          maxTokensForSale.toString(),
-        ],
-        from: address!,
-      })
-
       const configureSaleResponse = await contractsApi.callContractFunction(
-        'buildingsalemanager3', // Update with your MultiBaas instance name
+        'buildingsalemanager6', // Update with your MultiBaas instance name
         'buildingsalemanager',
         'configureSale',
         {
@@ -425,7 +421,7 @@ export default function NewProjectPage() {
             buildingId.toString(),
             tokenAddress,
             QUOTE_TOKEN_ADDRESS,
-            tokenPrice.toString(),
+            1,
             maxTokensForSale.toString(),
           ],
           from: address!,
@@ -499,7 +495,7 @@ export default function NewProjectPage() {
     // Step 3: Publish sale
     try {
       const publishSaleResponse = await contractsApi.callContractFunction(
-        'buildingsalemanager3',
+        'buildingsalemanager6',
         'buildingsalemanager',
         'publishSale',
         {
@@ -575,7 +571,7 @@ export default function NewProjectPage() {
     // Step 4: Open sale
     try {
       const openSaleResponse = await contractsApi.callContractFunction(
-        'buildingsalemanager3',
+        'buildingsalemanager6',
         'buildingsalemanager',
         'openSale',
         {
@@ -612,9 +608,12 @@ export default function NewProjectPage() {
         {
           onSuccess: (tx) => {
             console.log('Sale opened successfully:', tx)
-            // All transactions completed successfully
-            setIsSubmitting(false)
-            router.push('/builder')
+            handleSubmit7(
+              tx as `0x${string}`,
+              buildingId,
+              contractsApi,
+              openSaleTransaction.to as `0x${string}`,
+            )
           },
           onError: (error) => {
             console.error('Error opening sale:', error)
@@ -629,6 +628,215 @@ export default function NewProjectPage() {
         err instanceof Error
           ? err.message
           : 'Failed to open sale. Please try again.',
+      )
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSubmit7 = async (
+    txHash: string,
+    buildingId: bigint,
+    contractsApi: ContractsApi,
+    saleManagerAddress: `0x${string}`,
+  ) => {
+    // Step 4: Call configureEscrow on the sale manager contract via MultiBaas
+    try {
+      const configureEscrowResponse = await contractsApi.callContractFunction(
+        'escrowmanager3', // MultiBaas instance name for BuildingSaleManager
+        'escrowmanager',
+        'configureEscrow',
+        {
+          args: [
+            buildingId.toString(),
+            '0xa5d5d2460027b1331c045951cec7579f4a90b196',
+            [1, 1, 1, 1, 1, 1, 1, 1],
+          ],
+          from: address!,
+        },
+      )
+
+      const configureEscrowResult = configureEscrowResponse.data.result
+
+      if (configureEscrowResult.kind !== 'TransactionToSignResponse') {
+        throw new Error(
+          'Expected transaction to sign for escrow configuration, but got method call response',
+        )
+      }
+
+      const configureEscrowTransaction = configureEscrowResult.tx
+
+      // Send configureEscrow transaction
+      await sendTransaction(
+        {
+          to: configureEscrowTransaction.to as `0x${string}`,
+          data: configureEscrowTransaction.data as `0x${string}`,
+          value: configureEscrowTransaction.value
+            ? BigInt(configureEscrowTransaction.value)
+            : BigInt(0),
+          gas: configureEscrowTransaction.gas
+            ? BigInt(configureEscrowTransaction.gas)
+            : undefined,
+          gasPrice: configureEscrowTransaction.gasPrice
+            ? BigInt(configureEscrowTransaction.gasPrice)
+            : undefined,
+        },
+        {
+          onSuccess: (tx) => {
+            console.log('Escrow configured successfully:', tx)
+            handleSubmit8(
+              tx as `0x${string}`,
+              buildingId,
+              contractsApi,
+              saleManagerAddress,
+            )
+          },
+          onError: (error) => {
+            console.error('Error configuring escrow:', error)
+            setError('Failed to configure escrow. Please try again.')
+            setIsSubmitting(false)
+          },
+        },
+      )
+    } catch (err) {
+      console.error('Error configuring escrow:', err)
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to configure escrow. Please try again.',
+      )
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSubmit8 = async (
+    txHash: string,
+    buildingId: bigint,
+    contractsApi: ContractsApi,
+    saleManagerAddress: `0x${string}`,
+  ) => {
+    // Wait for open sale transaction to complete
+    if (!publicClient) {
+      throw new Error('Public client not available')
+    }
+
+    await publicClient.waitForTransactionReceipt({
+      hash: txHash as `0x${string}`,
+    })
+
+    console.log('Sale opened, proceeding with token purchase')
+
+    // Step 5: Approve USDC for BuildingSaleManager
+    try {
+      // Small purchase amount: 100 USDC (assuming 6 decimals for USDC)
+      const purchaseAmount = BigInt(1) // 100 USDC with 6 decimals
+
+      // Approve USDC token for BuildingSaleManager
+      // ERC20 approve function: approve(address spender, uint256 amount)
+      // Encode and send approval transaction directly
+      const approveData = encodeFunctionData({
+        abi: [
+          {
+            inputs: [
+              { name: 'spender', type: 'address' },
+              { name: 'amount', type: 'uint256' },
+            ],
+            name: 'approve',
+            outputs: [{ name: '', type: 'bool' }],
+            stateMutability: 'nonpayable',
+            type: 'function',
+          },
+        ],
+        functionName: 'approve',
+        args: [saleManagerAddress, 200],
+      })
+
+      // Send approval transaction and wait for it to complete
+      await new Promise<void>((resolve, reject) => {
+        sendTransaction(
+          {
+            to: QUOTE_TOKEN_ADDRESS as `0x${string}`,
+            data: approveData,
+            value: BigInt(0),
+          },
+          {
+            onSuccess: async (tx) => {
+              console.log('USDC approval transaction sent:', tx)
+              try {
+                // Wait for approval transaction
+                await publicClient.waitForTransactionReceipt({
+                  hash: tx as `0x${string}`,
+                })
+                console.log('USDC approved successfully')
+
+                // Step 6: Buy tokens
+                const buyTokensResponse =
+                  await contractsApi.callContractFunction(
+                    'buildingsalemanager6',
+                    'buildingsalemanager',
+                    'buyTokens',
+                    {
+                      args: [buildingId.toString(), BigInt(1)],
+                      from: address!,
+                    },
+                  )
+
+                const buyTokensResult = buyTokensResponse.data.result
+
+                if (buyTokensResult.kind !== 'TransactionToSignResponse') {
+                  throw new Error(
+                    'Expected transaction to sign for buying tokens, but got method call response',
+                  )
+                }
+
+                const buyTokensTransaction = buyTokensResult.tx
+
+                // Send buy tokens transaction
+                await sendTransaction(
+                  {
+                    to: buyTokensTransaction.to as `0x${string}`,
+                    data: buyTokensTransaction.data as `0x${string}`,
+                    value: buyTokensTransaction.value
+                      ? BigInt(buyTokensTransaction.value)
+                      : BigInt(0),
+                    gas: buyTokensTransaction.gas
+                      ? BigInt(buyTokensTransaction.gas)
+                      : undefined,
+                    gasPrice: buyTokensTransaction.gasPrice
+                      ? BigInt(buyTokensTransaction.gasPrice)
+                      : undefined,
+                  },
+                  {
+                    onSuccess: (tx) => {
+                      console.log('Tokens purchased successfully:', tx)
+                      // All transactions completed successfully
+                      setIsSubmitting(false)
+                      router.push('/builder')
+                    },
+                    onError: (error) => {
+                      console.error('Error buying tokens:', error)
+                      setError('Failed to buy tokens. Please try again.')
+                      setIsSubmitting(false)
+                    },
+                  },
+                )
+                resolve()
+              } catch (error) {
+                reject(error)
+              }
+            },
+            onError: (error) => {
+              console.error('Error approving USDC:', error)
+              reject(error)
+            },
+          },
+        )
+      })
+    } catch (err) {
+      console.error('Error in token purchase flow:', err)
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to complete token purchase. Please try again.',
       )
       setIsSubmitting(false)
     }
