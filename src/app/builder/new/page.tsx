@@ -19,8 +19,6 @@ import BuildingTokenFactoryABI from '../../../../abi/BuildingTokenFactory.json'
 const MULTIBAAS_HOST = process.env.NEXT_PUBLIC_MULTIBAAS_HOST || ''
 const MULTIBAAS_API_KEY = process.env.NEXT_PUBLIC_MULTIBAAS_API_KEY || ''
 const DEFAULT_ORACLE_ADDRESS = process.env.NEXT_PUBLIC_ORACLE_ADDRESS || ''
-const TOKEN_FACTORY_ADDRESS =
-  process.env.NEXT_PUBLIC_TOKEN_FACTORY_ADDRESS || ''
 
 export default function NewProjectPage() {
   const { isConnected, address } = useAccount()
@@ -90,7 +88,7 @@ export default function NewProjectPage() {
 
       // Call the contract function using MultiBaas SDK
       const response = await contractsApi.callContractFunction(
-        'buildingregistry4',
+        'buildingregistry3',
         'buildingregistry',
         'createBuilding',
         {
@@ -120,161 +118,26 @@ export default function NewProjectPage() {
       const transaction = result.tx
 
       // Send the transaction using wagmi
-      const txHash = (await sendTransaction({
-        to: transaction.to as `0x${string}`,
-        data: transaction.data as `0x${string}`,
-        value: transaction.value ? BigInt(transaction.value) : BigInt(0),
-        gas: transaction.gas ? BigInt(transaction.gas) : undefined,
-        gasPrice: transaction.gasPrice
-          ? BigInt(transaction.gasPrice)
-          : undefined,
-      })) as unknown as `0x${string}`
-
-      // Wait for transaction receipt to get building ID
-      if (!publicClient) {
-        throw new Error('Public client not available')
-      }
-
-      const buildingReceipt = await publicClient.waitForTransactionReceipt({
-        hash: txHash,
-      })
-
-      // Extract building ID from BuildingCreated event
-      let buildingId: bigint | null = null
-      if (buildingReceipt.logs) {
-        for (const log of buildingReceipt.logs) {
-          try {
-            const decoded = decodeEventLog({
-              abi: BuildingRegistryABI.abi as any,
-              data: log.data,
-              topics: log.topics,
-            }) as { eventName: string; args: { buildingId?: bigint } }
-
-            console.log('decoded', decoded)
-            if (
-              decoded.eventName === 'BuildingCreated' &&
-              decoded.args.buildingId
-            ) {
-              buildingId = decoded.args.buildingId
-              break
-            }
-          } catch {
-            // Not the event we're looking for, continue
-            continue
-          }
-        }
-      }
-
-      if (!buildingId) {
-        throw new Error('Failed to extract building ID from transaction')
-      }
-
-      console.log('Building ID:', buildingId.toString())
-
-      // TOKEN FACTORY - CREATE TOKEN
-      if (!TOKEN_FACTORY_ADDRESS) {
-        throw new Error('Token factory address is not configured')
-      }
-
-      // Convert tokensAvailable to wei (assuming 18 decimals)
-      // Parse the tokensAvailable string (e.g., "8.5M" -> 8500000)
-      const tokensAvailableStr = formData.tokensAvailable.replace(
-        /[^0-9.]/g,
-        '',
-      )
-      const tokensAvailableNum = parseFloat(tokensAvailableStr)
-      const totalSupply = BigInt(
-        Math.floor(tokensAvailableNum * 1e18).toString(),
-      )
-
-      // Call createBuildingToken on TokenFactory
-      const tokenFactoryResponse = await contractsApi.callContractFunction(
-        'buildingtokenfactory2', // Update with your MultiBaas instance name
-        'buildingtokenfactory',
-        'createBuildingToken',
+      await sendTransaction(
         {
-          args: [
-            buildingId.toString(),
-            formData.tokenName,
-            formData.tokenSymbol,
-            totalSupply.toString(),
-            address,
-          ],
-          from: address,
+          to: transaction.to as `0x${string}`,
+          data: transaction.data as `0x${string}`,
+          value: transaction.value ? BigInt(transaction.value) : BigInt(0),
+          gas: transaction.gas ? BigInt(transaction.gas) : undefined,
+          gasPrice: transaction.gasPrice
+            ? BigInt(transaction.gasPrice)
+            : undefined,
+        },
+        {
+          onSuccess: (tx) => {
+            console.log('tx', tx)
+            handleSubmit2(tx as `0x${string}`, contractsApi)
+          },
+          onError: (error) => {
+            console.log('error', error)
+          },
         },
       )
-
-      const tokenFactoryResult = tokenFactoryResponse.data.result
-
-      if (tokenFactoryResult.kind !== 'TransactionToSignResponse') {
-        throw new Error(
-          'Expected transaction to sign for token creation, but got method call response',
-        )
-      }
-
-      const tokenFactoryTransaction = tokenFactoryResult.tx
-      console.log('tokenFactoryTransaction', tokenFactoryTransaction)
-
-      // Send token creation transaction
-      const tokenFactoryTxHash = (await sendTransaction({
-        to: tokenFactoryTransaction.to as `0x${string}`,
-        data: tokenFactoryTransaction.data as `0x${string}`,
-        value: tokenFactoryTransaction.value
-          ? BigInt(tokenFactoryTransaction.value)
-          : BigInt(0),
-        gas: tokenFactoryTransaction.gas
-          ? BigInt(tokenFactoryTransaction.gas)
-          : undefined,
-        gasPrice: tokenFactoryTransaction.gasPrice
-          ? BigInt(tokenFactoryTransaction.gasPrice)
-          : undefined,
-      })) as unknown as `0x${string}`
-
-      // Wait for token creation transaction
-      const tokenReceipt = await publicClient.waitForTransactionReceipt({
-        hash: tokenFactoryTxHash,
-      })
-
-      // Extract token address from BuildingTokenCreated event
-      let tokenAddress: string | null = null
-      if (tokenReceipt.logs) {
-        for (const log of tokenReceipt.logs) {
-          try {
-            const decoded = decodeEventLog({
-              abi: BuildingTokenFactoryABI.abi as any,
-              data: log.data,
-              topics: log.topics,
-            }) as { eventName: string; args: { tokenAddress?: string } }
-
-            if (
-              decoded.eventName === 'BuildingTokenCreated' &&
-              decoded.args.tokenAddress
-            ) {
-              tokenAddress = decoded.args.tokenAddress
-              break
-            }
-          } catch {
-            // Not the event we're looking for, continue
-            continue
-          }
-        }
-      }
-
-      if (!tokenAddress) {
-        throw new Error('Failed to extract token address from transaction')
-      }
-
-      console.log('Token Address:', tokenAddress)
-
-      // PUBLISH TOKEN
-      // TODO: Implement publish token method when contract method is available
-      // This might be a method on the token contract or registry
-      console.log('Publish token - to be implemented')
-
-      // OPEN SALE
-      // TODO: Implement open sale method when contract method is available
-      // This might be a method on the token contract or a separate sale contract
-      console.log('Open sale - to be implemented')
     } catch (err) {
       console.error('Error creating building:', err)
       setError(
@@ -286,12 +149,169 @@ export default function NewProjectPage() {
     }
   }
 
+  const handleSubmit2 = async (txHash: string, contractsApi: ContractsApi) => {
+    // Wait for transaction receipt to get building ID
+    if (!publicClient) {
+      throw new Error('Public client not available')
+    }
+
+    const buildingReceipt = await publicClient.waitForTransactionReceipt({
+      hash: txHash as `0x${string}`,
+    })
+
+    console.log('buildingReceipt', buildingReceipt)
+
+    // Extract building ID from BuildingCreated event
+    let buildingId: bigint | null = null
+    if (buildingReceipt.logs) {
+      for (const log of buildingReceipt.logs) {
+        try {
+          const decoded = decodeEventLog({
+            abi: BuildingRegistryABI.abi as any,
+            data: log.data,
+            topics: log.topics,
+          }) as { eventName: string; args: { buildingId?: bigint } }
+
+          console.log('decoded', decoded)
+          if (
+            decoded.eventName === 'BuildingCreated' &&
+            decoded.args.buildingId
+          ) {
+            buildingId = decoded.args.buildingId
+            break
+          }
+        } catch {
+          // Not the event we're looking for, continue
+          continue
+        }
+      }
+    }
+
+    if (!buildingId) {
+      throw new Error('Failed to extract building ID from transaction')
+    }
+
+    console.log('Building ID:', buildingId.toString())
+
+    // Convert tokensAvailable to wei (assuming 18 decimals)
+    // Parse the tokensAvailable string (e.g., "8.5M" -> 8500000)
+    const tokensAvailableStr = formData.tokensAvailable.replace(/[^0-9.]/g, '')
+    const tokensAvailableNum = parseFloat(tokensAvailableStr)
+    const totalSupply = BigInt(Math.floor(tokensAvailableNum * 1e18).toString())
+
+    // Call createBuildingToken on TokenFactory
+    const tokenFactoryResponse = await contractsApi.callContractFunction(
+      'buildingtokenfactory3', // Update with your MultiBaas instance name
+      'buildingtokenfactory',
+      'createBuildingToken',
+      {
+        args: [
+          buildingId.toString(),
+          formData.tokenName,
+          formData.tokenSymbol,
+          totalSupply.toString(),
+          address,
+        ],
+        from: address,
+      },
+    )
+
+    const tokenFactoryResult = tokenFactoryResponse.data.result
+
+    if (tokenFactoryResult.kind !== 'TransactionToSignResponse') {
+      throw new Error(
+        'Expected transaction to sign for token creation, but got method call response',
+      )
+    }
+
+    const tokenFactoryTransaction = tokenFactoryResult.tx
+    console.log('tokenFactoryTransaction', tokenFactoryTransaction)
+
+    // Send token creation transaction
+    await sendTransaction(
+      {
+        to: tokenFactoryTransaction.to as `0x${string}`,
+        data: tokenFactoryTransaction.data as `0x${string}`,
+        value: tokenFactoryTransaction.value
+          ? BigInt(tokenFactoryTransaction.value)
+          : BigInt(0),
+        gas: tokenFactoryTransaction.gas
+          ? BigInt(tokenFactoryTransaction.gas)
+          : undefined,
+        gasPrice: tokenFactoryTransaction.gasPrice
+          ? BigInt(tokenFactoryTransaction.gasPrice)
+          : undefined,
+      },
+      {
+        onSuccess: (tx) => {
+          console.log('tx', tx)
+          handleSubmit3(tx as `0x${string}`)
+        },
+        onError: (error) => {
+          console.log('error', error)
+        },
+      },
+    )
+  }
+
+  const handleSubmit3 = async (txHash: string) => {
+    // Wait for transaction receipt to get building ID
+    if (!publicClient) {
+      throw new Error('Public client not available')
+    }
+
+    const tokenReceipt = await publicClient.waitForTransactionReceipt({
+      hash: txHash as `0x${string}`,
+    })
+
+    // Extract token address from BuildingTokenCreated event
+    let tokenAddress: string | null = null
+    if (tokenReceipt.logs) {
+      for (const log of tokenReceipt.logs) {
+        try {
+          const decoded = decodeEventLog({
+            abi: BuildingTokenFactoryABI.abi as any,
+            data: log.data,
+            topics: log.topics,
+          }) as { eventName: string; args: { tokenAddress?: string } }
+
+          if (
+            decoded.eventName === 'BuildingTokenCreated' &&
+            decoded.args.tokenAddress
+          ) {
+            tokenAddress = decoded.args.tokenAddress
+            break
+          }
+        } catch {
+          // Not the event we're looking for, continue
+          continue
+        }
+      }
+    }
+
+    if (!tokenAddress) {
+      throw new Error('Failed to extract token address from transaction')
+    }
+
+    console.log('Token Address:', tokenAddress)
+
+    // PUBLISH TOKEN
+    // TODO: Implement publish token method when contract method is available
+    // This might be a method on the token contract or registry
+    console.log('Publish token - to be implemented')
+
+    // OPEN SALE
+    // TODO: Implement open sale method when contract method is available
+    // This might be a method on the token contract or a separate sale contract
+    console.log('Open sale - to be implemented')
+  }
+
   // Handle successful transaction
   useEffect(() => {
     if (isConfirmed && hash && receipt) {
       setIsSubmitting(false)
-      alert('Project created successfully!')
-      router.push('/builder')
+      // alert('Project created successfully!')
+      // router.push('/builder')
     }
   }, [isConfirmed, hash, receipt, router])
 
