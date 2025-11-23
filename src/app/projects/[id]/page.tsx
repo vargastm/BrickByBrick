@@ -26,7 +26,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   try {
     const response = await contractsApi.callContractFunction(
-      'buildingregistry4',
+      'buildingregistry8',
       'buildingregistry',
       'getBuilding',
       {
@@ -75,19 +75,22 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       const saleResult = saleResponse.data.result as any
       const saleOutput = saleResult.output
 
-      
-      const maxTokensForSaleWei = BigInt(saleOutput[4] || saleOutput.maxTokensForSale || '0')
-      const tokenPriceWei = BigInt(saleOutput[3] || saleOutput.tokenPrice || '0')
-      const tokensSoldWei = BigInt(saleOutput[5] || saleOutput.tokensSold || '0')
+      const maxTokensForSaleWei = BigInt(
+        saleOutput[4] || saleOutput.maxTokensForSale || '0',
+      )
+      const tokenPriceWei = BigInt(
+        saleOutput[3] || saleOutput.tokenPrice || '0',
+      )
+      const tokensSoldWei = BigInt(
+        saleOutput[5] || saleOutput.tokensSold || '0',
+      )
 
-     
       const maxTokens = Number(maxTokensForSaleWei) / 1e18
       const tokenPrice = Number(tokenPriceWei) / 1e18
       const tokensSold = Number(tokensSoldWei) / 1e18
 
-      
       totalValue = Math.round(maxTokens * tokenPrice)
-      
+
       tokensAvailable = Math.round(maxTokens - tokensSold)
     } catch (saleError) {
       console.error('Error fetching sale data:', saleError)
