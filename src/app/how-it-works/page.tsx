@@ -50,28 +50,6 @@ const steps = [
   },
   {
     number: '03',
-    title: 'Review AI Valuation',
-    shortTitle: 'AI Valuation',
-    description:
-      'Get instant, AI-powered property valuations based on market data, location analysis, and construction progress. Make informed investment decisions with transparent insights.',
-    icon: (
-      <svg
-        className="h-8 w-8"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-        />
-      </svg>
-    ),
-  },
-  {
-    number: '04',
     title: 'Invest in Tokens',
     shortTitle: 'Invest in Tokens',
     description:
@@ -93,11 +71,11 @@ const steps = [
     ),
   },
   {
-    number: '05',
+    number: '04',
     title: 'Track Milestones',
     shortTitle: 'Track Milestones',
     description:
-      'Monitor construction progress in real-time through onchain milestones. Each milestone completion is verified on the blockchain, ensuring transparency and accountability.',
+      'Monitor construction progress in real time through on-chain milestones. Each milestone is independently verified using AI and recorded on the blockchain, ensuring full transparency and accountability.',
     icon: (
       <svg
         className="h-8 w-8"
@@ -115,7 +93,7 @@ const steps = [
     ),
   },
   {
-    number: '06',
+    number: '05',
     title: 'Earn Returns',
     shortTitle: 'Earn Returns',
     description:
