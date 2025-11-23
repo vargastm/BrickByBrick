@@ -17,7 +17,7 @@ import { useAccount } from 'wagmi'
 import { useTheme } from '@/contexts/ThemeContext'
 
 import {
-  getPexelsImage,
+  getProjectImage,
   getPortfolioHistory,
   getTotalCurrentValue,
   getTotalInvested,
@@ -297,7 +297,7 @@ export default function InvestmentsPage() {
                       <div className="md:col-span-3">
                         <div className="relative h-48 overflow-hidden rounded-xl bg-gradient-to-br from-zinc-100 to-zinc-200 md:h-full dark:from-zinc-800 dark:to-zinc-900">
                           <img
-                            src={getPexelsImage(investment.project.id)}
+                            src={getProjectImage(investment.project)}
                             alt={investment.project.name}
                             className="h-full w-full object-cover"
                           />

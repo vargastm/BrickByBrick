@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
 
-import { buildings, getPexelsImage } from './projects/mockData'
+import { buildings, getProjectImage } from './projects/mockData'
 
 export default function Home() {
   const { isConnected } = useAccount()
@@ -192,7 +192,7 @@ export default function Home() {
                 <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
                   <div className="relative h-64 overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
                     <img
-                      src={getPexelsImage(project.id)}
+                      src={getProjectImage(project)}
                       alt={project.name}
                       className="h-full w-full object-cover"
                     />

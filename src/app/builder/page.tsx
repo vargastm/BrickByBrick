@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useAccount } from 'wagmi'
 
-import { buildings, getPexelsImage } from '../projects/mockData'
+import { buildings, getProjectImage } from '../projects/mockData'
 
 export default function BuilderDashboard() {
   const { isConnected } = useAccount()
@@ -92,7 +92,7 @@ export default function BuilderDashboard() {
             >
               <div className="relative h-64 overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
                 <img
-                  src={getPexelsImage(project.id)}
+                  src={getProjectImage(project)}
                   alt={project.name}
                   className="h-full w-full object-cover"
                 />

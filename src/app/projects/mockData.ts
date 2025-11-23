@@ -23,13 +23,23 @@ export interface Building {
   totalMilestones: number
   featured: boolean
   category: 'Residential' | 'Commercial'
+  image?: string // Opcional: caminho da imagem em public/assets/ (ex: '/assets/minha-imagem.jpg')
+}
+
+// Função que retorna a imagem do projeto
+// Se o projeto tiver uma imagem definida, usa ela. Senão, usa Pexels
+export const getProjectImage = (project: Building) => {
+  if (project.image) {
+    return project.image
+  }
+  return getPexelsImage(project.id)
 }
 
 export const buildings: Building[] = [
   {
     id: 1,
-    name: 'Luxury Tower',
-    location: 'Manhattan, USA',
+    name: 'Marina Tower',
+    location: 'Florianópolis, Brazil',
     totalValue: '25M',
     tokensAvailable: '8.5M',
     progress: 45,
@@ -37,6 +47,7 @@ export const buildings: Building[] = [
     totalMilestones: 8,
     featured: true,
     category: 'Residential',
+    image: '/assets/predio-residencial-3-andares.jpg', // Descomente e adicione sua imagem
   },
   {
     id: 2,
@@ -49,6 +60,8 @@ export const buildings: Building[] = [
     totalMilestones: 7,
     featured: false,
     category: 'Residential',
+    image: '/assets/predio-fachada.jpg', // Descomente e adicione sua imagem
+
   },
   {
     id: 3,
@@ -61,6 +74,7 @@ export const buildings: Building[] = [
     totalMilestones: 8,
     featured: true,
     category: 'Commercial',
+    image: '/assets/maquete eletrônica_prédio_low.jpg',
   },
   {
     id: 4,
@@ -73,6 +87,7 @@ export const buildings: Building[] = [
     totalMilestones: 10,
     featured: false,
     category: 'Residential',
+    image: '/assets/Maquete-Eletrônica-e-projeto-Miriarq3d-Edificio-fachada.jpg'
   },
   {
     id: 5,
@@ -85,6 +100,7 @@ export const buildings: Building[] = [
     totalMilestones: 8,
     featured: false,
     category: 'Residential',
+    image: '/assets/yantram-studio-modern-3d-exterior-hotel-view-ideas-beach-side-architectural-services.jpg'
   },
   {
     id: 6,
@@ -97,5 +113,6 @@ export const buildings: Building[] = [
     totalMilestones: 9,
     featured: true,
     category: 'Commercial',
+    image: '/assets/ideia.jpg',
   },
 ]

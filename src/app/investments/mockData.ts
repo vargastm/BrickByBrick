@@ -1,4 +1,4 @@
-import { type Building, buildings, getPexelsImage } from '../projects/mockData'
+import { type Building, buildings, getProjectImage } from '../projects/mockData'
 
 export interface Investment {
   id: number
@@ -123,4 +123,4 @@ export const getPortfolioHistory = (): PortfolioDataPoint[] => {
   return data
 }
 
-export { getPexelsImage }
+export { getProjectImage }

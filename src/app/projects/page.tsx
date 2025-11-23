@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
-import { buildings, getPexelsImage } from './mockData'
+import { buildings, getProjectImage } from './mockData'
 
 export default function Buildings() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -162,7 +162,7 @@ export default function Buildings() {
               >
                 <div className="relative h-64 overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
                   <img
-                    src={getPexelsImage(building.id)}
+                    src={getProjectImage(building)}
                     alt={building.name}
                     className="h-full w-full object-cover"
                   />

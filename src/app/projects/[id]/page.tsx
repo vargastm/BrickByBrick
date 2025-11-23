@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 
 import InvestButton from '@/components/InvestButton'
 
-import { buildings, getPexelsImage } from '../mockData'
+import { buildings, getProjectImage } from '../mockData'
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>
@@ -89,7 +89,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
               <div className="relative h-96 overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
                 <img
-                  src={getPexelsImage(project.id)}
+                  src={getProjectImage(project)}
                   alt={project.name}
                   className="h-full w-full object-cover"
                 />
