@@ -26,7 +26,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   try {
     const response = await contractsApi.callContractFunction(
-      'buildingregistry8',
+      'buildingregistry21',
       'buildingregistry',
       'getBuilding',
       {
@@ -64,7 +64,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
     try {
       const saleResponse = await contractsApi.callContractFunction(
-        'buildingsalemanager3',
+        'buildingsalemanager21',
         'buildingsalemanager',
         'getSale',
         {

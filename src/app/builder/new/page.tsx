@@ -98,7 +98,7 @@ export default function NewProjectPage() {
 
       // Call the contract function using MultiBaas SDK
       const response = await contractsApi.callContractFunction(
-        'buildingregistry8',
+        'buildingregistry21',
         'buildingregistry',
         'createBuilding',
         {
@@ -211,7 +211,7 @@ export default function NewProjectPage() {
 
     // Call createBuildingToken on TokenFactory
     const tokenFactoryResponse = await contractsApi.callContractFunction(
-      'buildingtokenfactory7', // Update with your MultiBaas instance name
+      'buildingtokenfactory21', // Update with your MultiBaas instance name
       'buildingtokenfactory',
       'createBuildingToken',
       {
@@ -312,7 +312,7 @@ export default function NewProjectPage() {
     // Step 1: Link token to building in registry
     try {
       const setTokenResponse = await contractsApi.callContractFunction(
-        'buildingregistry8',
+        'buildingregistry21',
         'buildingregistry',
         'setTokenContract',
         {
@@ -413,7 +413,7 @@ export default function NewProjectPage() {
       )
 
       const configureSaleResponse = await contractsApi.callContractFunction(
-        'buildingsalemanager6', // Update with your MultiBaas instance name
+        'buildingsalemanager21', // Update with your MultiBaas instance name
         'buildingsalemanager',
         'configureSale',
         {
@@ -495,7 +495,7 @@ export default function NewProjectPage() {
     // Step 3: Publish sale
     try {
       const publishSaleResponse = await contractsApi.callContractFunction(
-        'buildingsalemanager6',
+        'buildingsalemanager21',
         'buildingsalemanager',
         'publishSale',
         {
@@ -571,7 +571,7 @@ export default function NewProjectPage() {
     // Step 4: Open sale
     try {
       const openSaleResponse = await contractsApi.callContractFunction(
-        'buildingsalemanager6',
+        'buildingsalemanager21',
         'buildingsalemanager',
         'openSale',
         {
@@ -771,7 +771,7 @@ export default function NewProjectPage() {
                 // Step 6: Buy tokens
                 const buyTokensResponse =
                   await contractsApi.callContractFunction(
-                    'buildingsalemanager6',
+                    'buildingsalemanager21',
                     'buildingsalemanager',
                     'buyTokens',
                     {
