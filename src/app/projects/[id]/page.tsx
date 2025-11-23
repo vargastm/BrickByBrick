@@ -1,10 +1,12 @@
+import * as MultiBaas from '@curvegrid/multibaas-sdk'
+import { isAxiosError } from 'axios'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import InvestButton from '@/components/InvestButton'
 import MilestoneUploadButton from '@/components/MilestoneUploadButton'
 
-import { buildings, getPexelsImage } from '../mockData'
+import { getPexelsImage } from '../mockData'
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>
@@ -12,12 +14,72 @@ interface ProjectPageProps {
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { id } = await params
-  const projectId = parseInt(id, 10)
-  const project = buildings.find((building) => building.id === projectId)
 
-  if (!project) {
-    notFound()
+  const config = new MultiBaas.Configuration({
+    basePath: process.env.NEXT_PUBLIC_MULTIBAAS_HOST || '',
+    accessToken: process.env.NEXT_PUBLIC_MULTIBAAS_API_KEY || '',
+  })
+
+  const contractsApi = new MultiBaas.ContractsApi(config)
+
+  let projectData: any = null
+
+  try {
+    const response = await contractsApi.callContractFunction(
+      'buildingregistry4',
+      'buildingregistry',
+      'getBuilding',
+      {
+        args: [id],
+      },
+    )
+
+    const result = response.data.result as any
+    const output = result.output
+
+    const rawData = {
+      id: Number(output.id || output[0]),
+      name: String(output.name || output[1]),
+      status: Number(output.status || output[6]),
+      totalMilestones: Number(output.totalMilestones || output[7]),
+      currentMilestone: Number(output.currentMilestone || output[8]),
+      exists: Boolean(output.exists || output[9]),
+      featured: Boolean(output.featured || output[10]),
+      description: String(output.description || output[11]),
+      location: String(output.location || output[12]),
+    }
+
+    if (!rawData.exists) {
+      notFound()
+    }
+
+    const progressCalc =
+      rawData.totalMilestones > 0
+        ? Math.round((rawData.currentMilestone / rawData.totalMilestones) * 100)
+        : 0
+
+    projectData = {
+      ...rawData,
+      progress: progressCalc,
+      milestonesCompleted: rawData.currentMilestone,
+
+      totalValue: 5000000,
+      tokensAvailable: 250000,
+      category: 'Real Estate',
+    }
+  } catch (e) {
+    console.error('Error fetching building data:', e)
+    if (isAxiosError(e) && e.response?.status === 404) {
+      notFound()
+    }
+    return (
+      <div className="flex min-h-screen items-center justify-center text-red-500">
+        Error loading project data. Please try again later.
+      </div>
+    )
   }
+
+  const project = projectData
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-50 dark:from-[#0f101a] dark:via-zinc-950 dark:to-[#0f101a]">
@@ -64,13 +126,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               <div>
                 <p className="text-sm text-zinc-400">Total Valuation</p>
                 <p className="text-2xl font-bold text-white">
-                  ${project.totalValue}
+                  ${project.totalValue.toLocaleString()}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-zinc-400">Tokens Available</p>
                 <p className="text-2xl font-bold text-white">
-                  ${project.tokensAvailable}
+                  ${project.tokensAvailable.toLocaleString()}
                 </p>
               </div>
               <div>
@@ -113,14 +175,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                     Description
                   </h3>
                   <p className="text-zinc-700 dark:text-zinc-300">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                    Quisquam, quos. Lorem ipsum dolor sit amet consectetur
-                    adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet
-                    consectetur adipisicing elit. Quisquam, quos. Lorem ipsum
-                    dolor sit amet consectetur adipisicing elit. Quisquam, quos.
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                    Quisquam, quos. Lorem ipsum dolor sit amet consectetur
-                    adipisicing elit. Quisquam, quos.
+                    {project.description}
                   </p>
                 </div>
                 <div>
@@ -221,7 +276,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                       Total Valuation
                     </span>
                     <span className="text-xl font-bold text-zinc-900 dark:text-white">
-                      ${project.totalValue}
+                      ${project.totalValue.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex items-baseline justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
@@ -229,7 +284,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                       Tokens Available
                     </span>
                     <span className="text-xl font-bold text-zinc-900 dark:text-white">
-                      ${project.tokensAvailable}
+                      ${project.tokensAvailable.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex items-baseline justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">

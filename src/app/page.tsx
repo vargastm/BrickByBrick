@@ -75,11 +75,10 @@ export default function Home() {
               </svg>
             </div>
             <h3 className="mb-2 text-xl font-bold text-zinc-900 dark:text-white">
-            Tokenized Funding
+              Tokenized Funding
             </h3>
             <p className="text-zinc-600 dark:text-zinc-400">
-
-            Finance projects transparently through blockchain tokenization.
+              Finance projects transparently through blockchain tokenization.
             </p>
           </div>
 
@@ -100,10 +99,11 @@ export default function Home() {
               </svg>
             </div>
             <h3 className="mb-2 text-xl font-bold text-zinc-900 dark:text-white">
-            Accessible Investments
+              Accessible Investments
             </h3>
             <p className="text-zinc-600 dark:text-zinc-400">
-            Invest in real estate with a low entry ticket and fractional tokens.
+              Invest in real estate with a low entry ticket and fractional
+              tokens.
             </p>
           </div>
 
@@ -124,10 +124,11 @@ export default function Home() {
               </svg>
             </div>
             <h3 className="mb-2 text-xl font-bold text-zinc-900 dark:text-white">
-            AI-Verified Escrow Security
+              AI-Verified Escrow Security
             </h3>
             <p className="text-zinc-600 dark:text-zinc-400">
-            Funds release only after AI-validated, on-chain construction progress.
+              Funds release only after AI-validated, on-chain construction
+              progress.
             </p>
           </div>
         </div>
