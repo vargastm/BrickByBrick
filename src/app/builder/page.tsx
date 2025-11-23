@@ -35,7 +35,7 @@ export default function BuilderDashboard() {
     accessToken: process.env.NEXT_PUBLIC_MULTIBAAS_API_KEY,
   })
   const contractsApi = new MultiBaas.ContractsApi(config)
-  const deployedAddressOrAlias = 'buildingregistry8'
+  const deployedAddressOrAlias = 'buildingregistry21'
   const contractLabel = 'buildingregistry'
 
   useEffect(() => {

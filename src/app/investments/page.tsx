@@ -47,7 +47,7 @@ export default function InvestmentsPage() {
     accessToken: process.env.NEXT_PUBLIC_MULTIBAAS_API_KEY,
   })
   const contractsApi = new MultiBaas.ContractsApi(config)
-  const deployedAddressOrAlias = 'buildingregistry4'
+  const deployedAddressOrAlias = 'buildingregistry21'
   const contractLabel = 'buildingregistry'
 
   useEffect(() => {
@@ -143,7 +143,8 @@ export default function InvestmentsPage() {
   // Mock investment data for display
   const totalInvested = 560000
   const totalCurrentValue = 639000
-  const totalReturn = ((totalCurrentValue - totalInvested) / totalInvested) * 100
+  const totalReturn =
+    ((totalCurrentValue - totalInvested) / totalInvested) * 100
   const totalProfit = totalCurrentValue - totalInvested
   const portfolioHistory = [
     { date: '2025-01-01', value: 125000, invested: 125000 },
@@ -446,9 +447,11 @@ export default function InvestmentsPage() {
                 const amountInvested = 125000 + building.id * 15000
                 const currentValue = amountInvested * 1.15
                 const profit = currentValue - amountInvested
-                const returnPercentage = ((profit / amountInvested) * 100)
+                const returnPercentage = (profit / amountInvested) * 100
                 const tokensOwned = (amountInvested / 0.25).toLocaleString()
-                const investmentDate = new Date(2025, building.id % 12, 15).toISOString().split('T')[0]
+                const investmentDate = new Date(2025, building.id % 12, 15)
+                  .toISOString()
+                  .split('T')[0]
 
                 return (
                   <Link
@@ -549,7 +552,8 @@ export default function InvestmentsPage() {
                                     : 'text-red-600 dark:text-red-400'
                                 }`}
                               >
-                                {profit >= 0 ? '+' : ''}${profit.toLocaleString()}
+                                {profit >= 0 ? '+' : ''}$
+                                {profit.toLocaleString()}
                               </p>
                             </div>
                           </div>
@@ -589,13 +593,14 @@ export default function InvestmentsPage() {
                                 Invested on
                               </p>
                               <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                                {new Date(
-                                  investmentDate,
-                                ).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric',
-                                })}
+                                {new Date(investmentDate).toLocaleDateString(
+                                  'en-US',
+                                  {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                  },
+                                )}
                               </p>
                             </div>
                           </div>
