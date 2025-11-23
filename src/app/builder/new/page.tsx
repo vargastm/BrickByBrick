@@ -19,6 +19,9 @@ import BuildingTokenFactoryABI from '../../../../abi/BuildingTokenFactory.json'
 const MULTIBAAS_HOST = process.env.NEXT_PUBLIC_MULTIBAAS_HOST || ''
 const MULTIBAAS_API_KEY = process.env.NEXT_PUBLIC_MULTIBAAS_API_KEY || ''
 const DEFAULT_ORACLE_ADDRESS = process.env.NEXT_PUBLIC_ORACLE_ADDRESS || ''
+const QUOTE_TOKEN_ADDRESS =
+  process.env.NEXT_PUBLIC_QUOTE_TOKEN_ADDRESS ||
+  '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' // Default to ETH address, update as needed
 
 export default function NewProjectPage() {
   const { isConnected, address } = useAccount()
@@ -88,7 +91,7 @@ export default function NewProjectPage() {
 
       // Call the contract function using MultiBaas SDK
       const response = await contractsApi.callContractFunction(
-        'buildingregistry3',
+        'buildingregistry5',
         'buildingregistry',
         'createBuilding',
         {
@@ -201,7 +204,7 @@ export default function NewProjectPage() {
 
     // Call createBuildingToken on TokenFactory
     const tokenFactoryResponse = await contractsApi.callContractFunction(
-      'buildingtokenfactory3', // Update with your MultiBaas instance name
+      'buildingtokenfactory4', // Update with your MultiBaas instance name
       'buildingtokenfactory',
       'createBuildingToken',
       {
@@ -245,7 +248,7 @@ export default function NewProjectPage() {
       {
         onSuccess: (tx) => {
           console.log('tx', tx)
-          handleSubmit3(tx as `0x${string}`)
+          handleSubmit3(tx as `0x${string}`, buildingId, contractsApi)
         },
         onError: (error) => {
           console.log('error', error)
@@ -254,7 +257,11 @@ export default function NewProjectPage() {
     )
   }
 
-  const handleSubmit3 = async (txHash: string) => {
+  const handleSubmit3 = async (
+    txHash: string,
+    buildingId: bigint,
+    contractsApi: ContractsApi,
+  ) => {
     // Wait for transaction receipt to get building ID
     if (!publicClient) {
       throw new Error('Public client not available')
@@ -295,15 +302,336 @@ export default function NewProjectPage() {
 
     console.log('Token Address:', tokenAddress)
 
-    // PUBLISH TOKEN
-    // TODO: Implement publish token method when contract method is available
-    // This might be a method on the token contract or registry
-    console.log('Publish token - to be implemented')
+    // Step 1: Link token to building in registry
+    try {
+      const setTokenResponse = await contractsApi.callContractFunction(
+        'buildingregistry5',
+        'buildingregistry',
+        'setTokenContract',
+        {
+          args: [buildingId.toString(), tokenAddress],
+          from: address!,
+        },
+      )
 
-    // OPEN SALE
-    // TODO: Implement open sale method when contract method is available
-    // This might be a method on the token contract or a separate sale contract
-    console.log('Open sale - to be implemented')
+      const setTokenResult = setTokenResponse.data.result
+
+      if (setTokenResult.kind !== 'TransactionToSignResponse') {
+        throw new Error(
+          'Expected transaction to sign for setting token contract, but got method call response',
+        )
+      }
+
+      const setTokenTransaction = setTokenResult.tx
+
+      // Send set token contract transaction
+      await sendTransaction(
+        {
+          to: setTokenTransaction.to as `0x${string}`,
+          data: setTokenTransaction.data as `0x${string}`,
+          value: setTokenTransaction.value
+            ? BigInt(setTokenTransaction.value)
+            : BigInt(0),
+          gas: setTokenTransaction.gas
+            ? BigInt(setTokenTransaction.gas)
+            : undefined,
+          gasPrice: setTokenTransaction.gasPrice
+            ? BigInt(setTokenTransaction.gasPrice)
+            : undefined,
+        },
+        {
+          onSuccess: (tx) => {
+            console.log('Token contract set successfully:', tx)
+            handleSubmit4(
+              tx as `0x${string}`,
+              buildingId,
+              contractsApi,
+              tokenAddress,
+            )
+          },
+          onError: (error) => {
+            console.error('Error setting token contract:', error)
+            setError('Failed to set token contract. Please try again.')
+            setIsSubmitting(false)
+          },
+        },
+      )
+    } catch (err) {
+      console.error('Error setting token contract:', err)
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to set token contract. Please try again.',
+      )
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSubmit4 = async (
+    txHash: string,
+    buildingId: bigint,
+    contractsApi: ContractsApi,
+    tokenAddress: string,
+  ) => {
+    // Wait for set token contract transaction to complete
+    if (!publicClient) {
+      throw new Error('Public client not available')
+    }
+
+    await publicClient.waitForTransactionReceipt({
+      hash: txHash as `0x${string}`,
+    })
+
+    console.log('Token contract linked to building')
+
+    // Step 2: Configure sale on BuildingSaleManager
+    try {
+      // Calculate token price: totalValue / tokensAvailable (in wei)
+      const totalValueStr = formData.totalValue.replace(/[^0-9.]/g, '')
+      const totalValueNum = parseFloat(totalValueStr)
+      const tokensAvailableStr = formData.tokensAvailable.replace(
+        /[^0-9.]/g,
+        '',
+      )
+      const tokensAvailableNum = parseFloat(tokensAvailableStr)
+
+      // Token price in wei per token (assuming quote token has 18 decimals)
+      const tokenPrice = BigInt(
+        Math.floor((totalValueNum / tokensAvailableNum) * 1e18).toString(),
+      )
+
+      // Max tokens for sale in wei (assuming 18 decimals)
+      const maxTokensForSale = BigInt(
+        Math.floor(tokensAvailableNum * 1e18).toString(),
+      )
+
+      console.log('tokenPrice', {
+        args: [
+          buildingId.toString(),
+          tokenAddress,
+          QUOTE_TOKEN_ADDRESS,
+          tokenPrice.toString(),
+          maxTokensForSale.toString(),
+        ],
+        from: address!,
+      })
+
+      const configureSaleResponse = await contractsApi.callContractFunction(
+        'buildingsalemanager3', // Update with your MultiBaas instance name
+        'buildingsalemanager',
+        'configureSale',
+        {
+          args: [
+            buildingId.toString(),
+            tokenAddress,
+            QUOTE_TOKEN_ADDRESS,
+            tokenPrice.toString(),
+            maxTokensForSale.toString(),
+          ],
+          from: address!,
+        },
+      )
+
+      const configureSaleResult = configureSaleResponse.data.result
+
+      if (configureSaleResult.kind !== 'TransactionToSignResponse') {
+        throw new Error(
+          'Expected transaction to sign for configuring sale, but got method call response',
+        )
+      }
+
+      const configureSaleTransaction = configureSaleResult.tx
+
+      // Send configure sale transaction
+      await sendTransaction(
+        {
+          to: configureSaleTransaction.to as `0x${string}`,
+          data: configureSaleTransaction.data as `0x${string}`,
+          value: configureSaleTransaction.value
+            ? BigInt(configureSaleTransaction.value)
+            : BigInt(0),
+          gas: configureSaleTransaction.gas
+            ? BigInt(configureSaleTransaction.gas)
+            : undefined,
+          gasPrice: configureSaleTransaction.gasPrice
+            ? BigInt(configureSaleTransaction.gasPrice)
+            : undefined,
+        },
+        {
+          onSuccess: (tx) => {
+            console.log('Sale configured successfully:', tx)
+            handleSubmit5(tx as `0x${string}`, buildingId, contractsApi)
+          },
+          onError: (error) => {
+            console.error('Error configuring sale:', error)
+            setError('Failed to configure sale. Please try again.')
+            setIsSubmitting(false)
+          },
+        },
+      )
+    } catch (err) {
+      console.error('Error configuring sale:', err)
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to configure sale. Please try again.',
+      )
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSubmit5 = async (
+    txHash: string,
+    buildingId: bigint,
+    contractsApi: ContractsApi,
+  ) => {
+    // Wait for configure sale transaction to complete
+    if (!publicClient) {
+      throw new Error('Public client not available')
+    }
+
+    await publicClient.waitForTransactionReceipt({
+      hash: txHash as `0x${string}`,
+    })
+
+    console.log('Sale configured')
+
+    // Step 3: Publish sale
+    try {
+      const publishSaleResponse = await contractsApi.callContractFunction(
+        'buildingsalemanager3',
+        'buildingsalemanager',
+        'publishSale',
+        {
+          args: [buildingId.toString()],
+          from: address!,
+        },
+      )
+
+      const publishSaleResult = publishSaleResponse.data.result
+
+      if (publishSaleResult.kind !== 'TransactionToSignResponse') {
+        throw new Error(
+          'Expected transaction to sign for publishing sale, but got method call response',
+        )
+      }
+
+      const publishSaleTransaction = publishSaleResult.tx
+
+      // Send publish sale transaction
+      await sendTransaction(
+        {
+          to: publishSaleTransaction.to as `0x${string}`,
+          data: publishSaleTransaction.data as `0x${string}`,
+          value: publishSaleTransaction.value
+            ? BigInt(publishSaleTransaction.value)
+            : BigInt(0),
+          gas: publishSaleTransaction.gas
+            ? BigInt(publishSaleTransaction.gas)
+            : undefined,
+          gasPrice: publishSaleTransaction.gasPrice
+            ? BigInt(publishSaleTransaction.gasPrice)
+            : undefined,
+        },
+        {
+          onSuccess: (tx) => {
+            console.log('Sale published successfully:', tx)
+            handleSubmit6(tx as `0x${string}`, buildingId, contractsApi)
+          },
+          onError: (error) => {
+            console.error('Error publishing sale:', error)
+            setError('Failed to publish sale. Please try again.')
+            setIsSubmitting(false)
+          },
+        },
+      )
+    } catch (err) {
+      console.error('Error publishing sale:', err)
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to publish sale. Please try again.',
+      )
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSubmit6 = async (
+    txHash: string,
+    buildingId: bigint,
+    contractsApi: ContractsApi,
+  ) => {
+    // Wait for publish sale transaction to complete
+    if (!publicClient) {
+      throw new Error('Public client not available')
+    }
+
+    await publicClient.waitForTransactionReceipt({
+      hash: txHash as `0x${string}`,
+    })
+
+    console.log('Sale published')
+
+    // Step 4: Open sale
+    try {
+      const openSaleResponse = await contractsApi.callContractFunction(
+        'buildingsalemanager3',
+        'buildingsalemanager',
+        'openSale',
+        {
+          args: [buildingId.toString()],
+          from: address!,
+        },
+      )
+
+      const openSaleResult = openSaleResponse.data.result
+
+      if (openSaleResult.kind !== 'TransactionToSignResponse') {
+        throw new Error(
+          'Expected transaction to sign for opening sale, but got method call response',
+        )
+      }
+
+      const openSaleTransaction = openSaleResult.tx
+
+      // Send open sale transaction
+      await sendTransaction(
+        {
+          to: openSaleTransaction.to as `0x${string}`,
+          data: openSaleTransaction.data as `0x${string}`,
+          value: openSaleTransaction.value
+            ? BigInt(openSaleTransaction.value)
+            : BigInt(0),
+          gas: openSaleTransaction.gas
+            ? BigInt(openSaleTransaction.gas)
+            : undefined,
+          gasPrice: openSaleTransaction.gasPrice
+            ? BigInt(openSaleTransaction.gasPrice)
+            : undefined,
+        },
+        {
+          onSuccess: (tx) => {
+            console.log('Sale opened successfully:', tx)
+            // All transactions completed successfully
+            setIsSubmitting(false)
+            router.push('/builder')
+          },
+          onError: (error) => {
+            console.error('Error opening sale:', error)
+            setError('Failed to open sale. Please try again.')
+            setIsSubmitting(false)
+          },
+        },
+      )
+    } catch (err) {
+      console.error('Error opening sale:', err)
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to open sale. Please try again.',
+      )
+      setIsSubmitting(false)
+    }
   }
 
   // Handle successful transaction
