@@ -50,7 +50,8 @@ export default function Buildings() {
           { args: [] },
         )
 
-        const totalRaw = totalResp.data.result.output
+        const totalResult = totalResp.data.result as any
+        const totalRaw = totalResult.output
         const totalCount = Number(totalRaw)
 
         if (isNaN(totalCount) || totalCount <= 0) {

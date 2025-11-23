@@ -34,7 +34,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       },
     )
 
-    const output = response.data.result.output
+    const result = response.data.result as any
+    const output = result.output
 
     const rawData = {
       id: Number(output.id || output[0]),
