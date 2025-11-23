@@ -4,22 +4,28 @@ import { Configuration, ContractsApi } from '@curvegrid/multibaas-sdk'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
+import { decodeEventLog } from 'viem'
 import {
   useAccount,
+  usePublicClient,
   useSendTransaction,
   useWaitForTransactionReceipt,
 } from 'wagmi'
 
+import BuildingRegistryABI from '../../../../abi/BuildingRegistry.json'
+import BuildingTokenFactoryABI from '../../../../abi/BuildingTokenFactory.json'
+
 // MultiBaas configuration - these should be set as environment variables
 const MULTIBAAS_HOST = process.env.NEXT_PUBLIC_MULTIBAAS_HOST || ''
 const MULTIBAAS_API_KEY = process.env.NEXT_PUBLIC_MULTIBAAS_API_KEY || ''
-const MULTIBAAS_CONTRACT_NAME =
-  process.env.NEXT_PUBLIC_MULTIBAAS_CONTRACT_NAME || 'BuildingRegistry'
 const DEFAULT_ORACLE_ADDRESS = process.env.NEXT_PUBLIC_ORACLE_ADDRESS || ''
+const TOKEN_FACTORY_ADDRESS =
+  process.env.NEXT_PUBLIC_TOKEN_FACTORY_ADDRESS || ''
 
 export default function NewProjectPage() {
   const { isConnected, address } = useAccount()
   const router = useRouter()
+  const publicClient = usePublicClient()
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -42,10 +48,13 @@ export default function NewProjectPage() {
     isPending: isPendingTransaction,
   } = useSendTransaction()
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    })
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+    data: receipt,
+  } = useWaitForTransactionReceipt({
+    hash,
+  })
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -68,19 +77,8 @@ export default function NewProjectPage() {
         )
       }
 
-      // Create metadata URI (JSON string containing project metadata)
-      // const metadata = {
-      //   name: formData.name,
-      //   location: formData.location,
-      //   category: formData.category,
-      //   totalValue: formData.totalValue,
-      //   tokensAvailable: formData.tokensAvailable,
-      //   tokenName: formData.tokenName,
-      //   tokenSymbol: formData.tokenSymbol,
-      //   description: formData.description,
-      //   featured: formData.featured,
-      // }
-      const metadataURI = 'https://www.google.com'
+      const metadataURI =
+        'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop'
       // const metadataURI = JSON.stringify(metadata)
 
       // Initialize MultiBaas client
@@ -90,16 +88,9 @@ export default function NewProjectPage() {
       })
       const contractsApi = new ContractsApi(configuration)
 
-      const contracts = await contractsApi.listContracts()
-      console.log(contracts)
-
-      // Get contract address (you may need to adjust this based on your setup)
-      // For now, we'll use the contract name as addressOrAlias
-      // const contractAddressOrAlias = 'buildingregistry2'
-
       // Call the contract function using MultiBaas SDK
       const response = await contractsApi.callContractFunction(
-        'buildingregistry2',
+        'buildingregistry4',
         'buildingregistry',
         'createBuilding',
         {
@@ -109,6 +100,9 @@ export default function NewProjectPage() {
             address,
             formData.oracleAddress,
             parseInt(formData.totalMilestones, 10),
+            formData.description,
+            formData.location,
+            formData.featured,
           ],
           from: address,
         },
@@ -125,10 +119,8 @@ export default function NewProjectPage() {
 
       const transaction = result.tx
 
-      console.log(transaction)
-
       // Send the transaction using wagmi
-      const tx = await sendTransaction({
+      const txHash = (await sendTransaction({
         to: transaction.to as `0x${string}`,
         data: transaction.data as `0x${string}`,
         value: transaction.value ? BigInt(transaction.value) : BigInt(0),
@@ -136,9 +128,153 @@ export default function NewProjectPage() {
         gasPrice: transaction.gasPrice
           ? BigInt(transaction.gasPrice)
           : undefined,
+      })) as unknown as `0x${string}`
+
+      // Wait for transaction receipt to get building ID
+      if (!publicClient) {
+        throw new Error('Public client not available')
+      }
+
+      const buildingReceipt = await publicClient.waitForTransactionReceipt({
+        hash: txHash,
       })
 
-      console.log(tx)
+      // Extract building ID from BuildingCreated event
+      let buildingId: bigint | null = null
+      if (buildingReceipt.logs) {
+        for (const log of buildingReceipt.logs) {
+          try {
+            const decoded = decodeEventLog({
+              abi: BuildingRegistryABI.abi as any,
+              data: log.data,
+              topics: log.topics,
+            }) as { eventName: string; args: { buildingId?: bigint } }
+
+            console.log('decoded', decoded)
+            if (
+              decoded.eventName === 'BuildingCreated' &&
+              decoded.args.buildingId
+            ) {
+              buildingId = decoded.args.buildingId
+              break
+            }
+          } catch {
+            // Not the event we're looking for, continue
+            continue
+          }
+        }
+      }
+
+      if (!buildingId) {
+        throw new Error('Failed to extract building ID from transaction')
+      }
+
+      console.log('Building ID:', buildingId.toString())
+
+      // TOKEN FACTORY - CREATE TOKEN
+      if (!TOKEN_FACTORY_ADDRESS) {
+        throw new Error('Token factory address is not configured')
+      }
+
+      // Convert tokensAvailable to wei (assuming 18 decimals)
+      // Parse the tokensAvailable string (e.g., "8.5M" -> 8500000)
+      const tokensAvailableStr = formData.tokensAvailable.replace(
+        /[^0-9.]/g,
+        '',
+      )
+      const tokensAvailableNum = parseFloat(tokensAvailableStr)
+      const totalSupply = BigInt(
+        Math.floor(tokensAvailableNum * 1e18).toString(),
+      )
+
+      // Call createBuildingToken on TokenFactory
+      const tokenFactoryResponse = await contractsApi.callContractFunction(
+        'buildingtokenfactory2', // Update with your MultiBaas instance name
+        'buildingtokenfactory',
+        'createBuildingToken',
+        {
+          args: [
+            buildingId.toString(),
+            formData.tokenName,
+            formData.tokenSymbol,
+            totalSupply.toString(),
+            address,
+          ],
+          from: address,
+        },
+      )
+
+      const tokenFactoryResult = tokenFactoryResponse.data.result
+
+      if (tokenFactoryResult.kind !== 'TransactionToSignResponse') {
+        throw new Error(
+          'Expected transaction to sign for token creation, but got method call response',
+        )
+      }
+
+      const tokenFactoryTransaction = tokenFactoryResult.tx
+      console.log('tokenFactoryTransaction', tokenFactoryTransaction)
+
+      // Send token creation transaction
+      const tokenFactoryTxHash = (await sendTransaction({
+        to: tokenFactoryTransaction.to as `0x${string}`,
+        data: tokenFactoryTransaction.data as `0x${string}`,
+        value: tokenFactoryTransaction.value
+          ? BigInt(tokenFactoryTransaction.value)
+          : BigInt(0),
+        gas: tokenFactoryTransaction.gas
+          ? BigInt(tokenFactoryTransaction.gas)
+          : undefined,
+        gasPrice: tokenFactoryTransaction.gasPrice
+          ? BigInt(tokenFactoryTransaction.gasPrice)
+          : undefined,
+      })) as unknown as `0x${string}`
+
+      // Wait for token creation transaction
+      const tokenReceipt = await publicClient.waitForTransactionReceipt({
+        hash: tokenFactoryTxHash,
+      })
+
+      // Extract token address from BuildingTokenCreated event
+      let tokenAddress: string | null = null
+      if (tokenReceipt.logs) {
+        for (const log of tokenReceipt.logs) {
+          try {
+            const decoded = decodeEventLog({
+              abi: BuildingTokenFactoryABI.abi as any,
+              data: log.data,
+              topics: log.topics,
+            }) as { eventName: string; args: { tokenAddress?: string } }
+
+            if (
+              decoded.eventName === 'BuildingTokenCreated' &&
+              decoded.args.tokenAddress
+            ) {
+              tokenAddress = decoded.args.tokenAddress
+              break
+            }
+          } catch {
+            // Not the event we're looking for, continue
+            continue
+          }
+        }
+      }
+
+      if (!tokenAddress) {
+        throw new Error('Failed to extract token address from transaction')
+      }
+
+      console.log('Token Address:', tokenAddress)
+
+      // PUBLISH TOKEN
+      // TODO: Implement publish token method when contract method is available
+      // This might be a method on the token contract or registry
+      console.log('Publish token - to be implemented')
+
+      // OPEN SALE
+      // TODO: Implement open sale method when contract method is available
+      // This might be a method on the token contract or a separate sale contract
+      console.log('Open sale - to be implemented')
     } catch (err) {
       console.error('Error creating building:', err)
       setError(
@@ -152,12 +288,12 @@ export default function NewProjectPage() {
 
   // Handle successful transaction
   useEffect(() => {
-    if (isConfirmed && hash) {
+    if (isConfirmed && hash && receipt) {
       setIsSubmitting(false)
       alert('Project created successfully!')
       router.push('/builder')
     }
-  }, [isConfirmed, hash, router])
+  }, [isConfirmed, hash, receipt, router])
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -332,28 +468,6 @@ export default function NewProjectPage() {
                   placeholder="Describe your project..."
                   className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm transition-all focus:border-black focus:ring-2 focus:ring-black/10 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-zinc-500"
                 />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="oracleAddress"
-                  className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-                >
-                  Oracle Address *
-                </label>
-                <input
-                  type="text"
-                  id="oracleAddress"
-                  name="oracleAddress"
-                  required
-                  value={formData.oracleAddress}
-                  onChange={handleChange}
-                  placeholder="0x..."
-                  className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm transition-all focus:border-black focus:ring-2 focus:ring-black/10 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-zinc-500"
-                />
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  Address of the oracle contract for milestone verification
-                </p>
               </div>
             </div>
           </div>
